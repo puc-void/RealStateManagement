@@ -1,0 +1,21 @@
+{
+  "name": "realstate",
+  "version": "1.0.0",
+  "description": "**\"Discover, Buy & Manage Properties\"**",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/puc-void/RealStateManagement.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/puc-void/RealStateManagement/issues"
+  },
+  "homepage": "https://github.com/puc-void/RealStateManagement#readme"
+}

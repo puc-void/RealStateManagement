@@ -1,0 +1,392 @@
+Initialized native services in: /home/akib/.gradle/native
+Initialized jansi services in: /home/akib/.gradle/native
+Found daemon DaemonInfo{pid=5249, address=[27a64d73-2af3-45cf-9aff-c8fc7030820b port:38125, addresses:[/127.0.0.1]], state=Idle, lastBusy=1777229897846, context=DefaultDaemonContext[uid=553fe9dc-48b2-47b0-8273-b34745d5cdac,javaHome=/usr/lib/jvm/java-25-openjdk-amd64,javaVersion=25,javaVendor=Debian,daemonRegistryDir=/home/akib/.gradle/daemon,pid=5249,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx2048m,-Dfile.encoding=UTF-8,-Duser.country=US,-Duser.language=en,-Duser.variant]} however its context does not match the desired criteria.
+JVM is incompatible.
+Wanted: DaemonRequestContext{jvmCriteria=Compatible with Java 21, any vendor, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties), daemonOpts=[-Xmx2048m, -Dfile.encoding=UTF-8, -Duser.country=US, -Duser.language=en, -Duser.variant], applyInstrumentationAgent=true, nativeServicesMode=ENABLED, priority=NORMAL}
+Actual: DefaultDaemonContext[uid=553fe9dc-48b2-47b0-8273-b34745d5cdac,javaHome=/usr/lib/jvm/java-25-openjdk-amd64,javaVersion=25,javaVendor=Debian,daemonRegistryDir=/home/akib/.gradle/daemon,pid=5249,idleTimeout=10800000,priority=NORMAL,applyInstrumentationAgent=true,nativeServicesMode=ENABLED,daemonOpts=-Xmx2048m,-Dfile.encoding=UTF-8,-Duser.country=US,-Duser.language=en,-Duser.variant]
+
+  Looking for a different daemon...
+The client will now receive all logging from the daemon (pid: 3360). The daemon log file: /home/akib/.gradle/daemon/9.2.1/daemon-3360.out.log
+Starting 13th build in daemon [uptime: 24 mins 14.027 secs, performance: 98%, GC rate: 0.00/s, heap usage: 0% of 2 GiB]
+Using 8 worker leases.
+Operational build model parameters: {requiresToolingModels=false, parallelProjectExecution=false, configureOnDemand=false, configurationCache=false, configurationCacheParallelStore=false, configurationCacheParallelLoad=true, isolatedProjects=false, parallelProjectConfiguration=false, intermediateModelCache=false, parallelToolingApiActions=false, invalidateCoupledProjects=false, modelAsProjectDependency=false, resilientModelBuilding=false}
+Now considering [/home/akib/AndroidStudioProjects/RealState] as hierarchies to watch
+Watching the file system is configured to be enabled if available
+File system watching is active
+Starting Build
+Resolved plugin [id: 'org.gradle.toolchains.foojay-resolver-convention', version: '1.0.0']
+Settings evaluated using settings file '/home/akib/AndroidStudioProjects/RealState/settings.gradle.kts'.
+Projects loaded. Root project using build file '/home/akib/AndroidStudioProjects/RealState/build.gradle.kts'.
+Included projects: [root project 'RealState', project ':app']
+
+> Configure project :
+Evaluating root project 'RealState' using build file '/home/akib/AndroidStudioProjects/RealState/build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '9.0.1', apply: false]
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.0.21', apply: false]
+
+> Configure project :app
+Evaluating project ':app' using build file '/home/akib/AndroidStudioProjects/RealState/app/build.gradle.kts'.
+Resolved plugin [id: 'com.android.application', version: '9.0.1']
+Resolved plugin [id: 'org.jetbrains.kotlin.plugin.compose', version: '2.0.21']
+Build f34ece91-ce71-4caa-b781-42bbf9759c8e is started
+Using default execution profile
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+Detected Android Gradle Plugin compose compiler configuration
+All projects evaluated.
+Task name matched 'cleanTestDebugUnitTest'
+Task name matched 'testDebugUnitTest'
+Selected primary task 'cleanTestDebugUnitTest' from project :
+Selected primary task 'testDebugUnitTest' from project :
+Adding -Xuse-inline-scopes-numbers Kotlin compiler flag for task :app:compileDebugKotlin
+Tasks to be executed: [task ':app:cleanTestDebugUnitTest', task ':app:preBuild', task ':app:preDebugBuild', task ':app:generateDebugResources', task ':app:packageDebugResources', task ':app:processDebugNavigationResources', task ':app:parseDebugLocalResources', task ':app:generateDebugRFile', task ':app:compileDebugKotlin', task ':app:javaPreCompileDebug', task ':app:compileDebugJavaWithJavac', task ':app:checkDebugAarMetadata', task ':app:compileDebugNavigationResources', task ':app:mapDebugSourceSetPaths', task ':app:mergeDebugResources', task ':app:createDebugCompatibleScreenManifests', task ':app:extractDeepLinksDebug', task ':app:processDebugMainManifest', task ':app:processDebugManifest', task ':app:processDebugManifestForPackage', task ':app:processDebugResources', task ':app:bundleDebugClassesToRuntimeJar', task ':app:bundleDebugClassesToCompileJar', task ':app:preDebugUnitTestBuild', task ':app:compileDebugUnitTestKotlin', task ':app:javaPreCompileDebugUnitTest', task ':app:compileDebugUnitTestJavaWithJavac', task ':app:processDebugJavaRes', task ':app:processDebugUnitTestJavaRes', task ':app:testDebugUnitTest']
+Tasks that were excluded: []
+Resolve mutations for :app:cleanTestDebugUnitTest (Thread[#896,Execution worker,5,main]) started.
+:app:cleanTestDebugUnitTest (Thread[#896,Execution worker,5,main]) started.
+destroyer locations for task group 0 (Thread[#897,Execution worker Thread 2,5,main]) started.
+
+> Task :app:cleanTestDebugUnitTest
+Caching disabled for task ':app:cleanTestDebugUnitTest' because:
+  Build cache is disabled
+Task ':app:cleanTestDebugUnitTest' is not up-to-date because:
+  Task has not declared any outputs despite executing actions.
+Resolve mutations for :app:preBuild (Thread[#896,Execution worker,5,main]) started.
+:app:preBuild (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:preBuild UP-TO-DATE
+Skipping task ':app:preBuild' as it has no actions.
+Resolve mutations for :app:preDebugBuild (Thread[#896,Execution worker,5,main]) started.
+:app:preDebugBuild (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:preDebugBuild UP-TO-DATE
+Skipping task ':app:preDebugBuild' as it has no actions.
+Resolve mutations for :app:generateDebugResources (Thread[#896,Execution worker,5,main]) started.
+:app:generateDebugResources (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:generateDebugResources UP-TO-DATE
+Caching disabled for task ':app:generateDebugResources' because:
+  Build cache is disabled
+Skipping task ':app:generateDebugResources' as it is up-to-date.
+Resolve mutations for :app:packageDebugResources (Thread[#896,Execution worker,5,main]) started.
+:app:packageDebugResources (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:packageDebugResources UP-TO-DATE
+Caching disabled for task ':app:packageDebugResources' because:
+  Build cache is disabled
+Skipping task ':app:packageDebugResources' as it is up-to-date.
+Resolve mutations for :app:processDebugNavigationResources (Thread[#896,Execution worker,5,main]) started.
+:app:processDebugNavigationResources (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:processDebugNavigationResources UP-TO-DATE
+Caching disabled for task ':app:processDebugNavigationResources' because:
+  Build cache is disabled
+Skipping task ':app:processDebugNavigationResources' as it is up-to-date.
+Resolve mutations for :app:parseDebugLocalResources (Thread[#896,Execution worker,5,main]) started.
+:app:parseDebugLocalResources (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:parseDebugLocalResources UP-TO-DATE
+Caching disabled for task ':app:parseDebugLocalResources' because:
+  Build cache is disabled
+Skipping task ':app:parseDebugLocalResources' as it is up-to-date.
+Resolve mutations for :app:generateDebugRFile (Thread[#896,Execution worker,5,main]) started.
+:app:generateDebugRFile (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:generateDebugRFile UP-TO-DATE
+Caching disabled for task ':app:generateDebugRFile' because:
+  Build cache is disabled
+Skipping task ':app:generateDebugRFile' as it is up-to-date.
+Resolve mutations for :app:compileDebugKotlin (Thread[#896,Execution worker,5,main]) started.
+:app:compileDebugKotlin (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:compileDebugKotlin UP-TO-DATE
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/main/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/debug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/debug/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/debug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/main/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/debug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/debug/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/debug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/main/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/debug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/debug/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/debug/java', not found
+Custom actions are attached to task ':app:compileDebugKotlin'.
+Caching disabled for task ':app:compileDebugKotlin' because:
+  Build cache is disabled
+Skipping task ':app:compileDebugKotlin' as it is up-to-date.
+Resolve mutations for :app:javaPreCompileDebug (Thread[#896,Execution worker,5,main]) started.
+:app:javaPreCompileDebug (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:javaPreCompileDebug UP-TO-DATE
+Caching disabled for task ':app:javaPreCompileDebug' because:
+  Build cache is disabled
+Skipping task ':app:javaPreCompileDebug' as it is up-to-date.
+Resolve mutations for :app:compileDebugJavaWithJavac (Thread[#896,Execution worker,5,main]) started.
+:app:compileDebugJavaWithJavac (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:compileDebugJavaWithJavac NO-SOURCE
+Skipping task ':app:compileDebugJavaWithJavac' as it has no source files and no previous output files.
+Resolve mutations for :app:checkDebugAarMetadata (Thread[#896,Execution worker,5,main]) started.
+:app:checkDebugAarMetadata (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:checkDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':app:checkDebugAarMetadata' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:checkDebugAarMetadata' as it is up-to-date.
+Resolve mutations for :app:compileDebugNavigationResources (Thread[#896,Execution worker,5,main]) started.
+:app:compileDebugNavigationResources (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:compileDebugNavigationResources UP-TO-DATE
+Caching disabled for task ':app:compileDebugNavigationResources' because:
+  Build cache is disabled
+Skipping task ':app:compileDebugNavigationResources' as it is up-to-date.
+Resolve mutations for :app:mapDebugSourceSetPaths (Thread[#896,Execution worker,5,main]) started.
+:app:mapDebugSourceSetPaths (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:mapDebugSourceSetPaths UP-TO-DATE
+Caching disabled for task ':app:mapDebugSourceSetPaths' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:mapDebugSourceSetPaths' as it is up-to-date.
+Resolve mutations for :app:mergeDebugResources (Thread[#896,Execution worker,5,main]) started.
+:app:mergeDebugResources (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:mergeDebugResources UP-TO-DATE
+Caching disabled for task ':app:mergeDebugResources' because:
+  Build cache is disabled
+Skipping task ':app:mergeDebugResources' as it is up-to-date.
+Resolve mutations for :app:createDebugCompatibleScreenManifests (Thread[#896,Execution worker,5,main]) started.
+:app:createDebugCompatibleScreenManifests (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
+Caching disabled for task ':app:createDebugCompatibleScreenManifests' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:createDebugCompatibleScreenManifests' as it is up-to-date.
+Resolve mutations for :app:extractDeepLinksDebug (Thread[#896,Execution worker,5,main]) started.
+:app:extractDeepLinksDebug (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:extractDeepLinksDebug UP-TO-DATE
+Caching disabled for task ':app:extractDeepLinksDebug' because:
+  Build cache is disabled
+Skipping task ':app:extractDeepLinksDebug' as it is up-to-date.
+Resolve mutations for :app:processDebugMainManifest (Thread[#896,Execution worker,5,main]) started.
+:app:processDebugMainManifest (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:processDebugMainManifest UP-TO-DATE
+Caching disabled for task ':app:processDebugMainManifest' because:
+  Build cache is disabled
+Skipping task ':app:processDebugMainManifest' as it is up-to-date.
+Resolve mutations for :app:processDebugManifest (Thread[#896,Execution worker,5,main]) started.
+:app:processDebugManifest (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:processDebugManifest UP-TO-DATE
+Caching disabled for task ':app:processDebugManifest' because:
+  Build cache is disabled
+Skipping task ':app:processDebugManifest' as it is up-to-date.
+Resolve mutations for :app:processDebugManifestForPackage (Thread[#896,Execution worker,5,main]) started.
+:app:processDebugManifestForPackage (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:processDebugManifestForPackage UP-TO-DATE
+Custom actions are attached to task ':app:processDebugManifestForPackage'.
+Caching disabled for task ':app:processDebugManifestForPackage' because:
+  Build cache is disabled
+Skipping task ':app:processDebugManifestForPackage' as it is up-to-date.
+Resolve mutations for :app:processDebugResources (Thread[#896,Execution worker,5,main]) started.
+:app:processDebugResources (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:processDebugResources UP-TO-DATE
+Caching disabled for task ':app:processDebugResources' because:
+  Build cache is disabled
+Skipping task ':app:processDebugResources' as it is up-to-date.
+Resolve mutations for :app:bundleDebugClassesToRuntimeJar (Thread[#896,Execution worker,5,main]) started.
+:app:bundleDebugClassesToRuntimeJar (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:bundleDebugClassesToRuntimeJar UP-TO-DATE
+Caching disabled for task ':app:bundleDebugClassesToRuntimeJar' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:bundleDebugClassesToRuntimeJar' as it is up-to-date.
+work action resolve classes.jar (project :app) (Thread[#896,Execution worker,5,main]) started.
+Resolve mutations for :app:bundleDebugClassesToCompileJar (Thread[#896,Execution worker,5,main]) started.
+:app:bundleDebugClassesToCompileJar (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:bundleDebugClassesToCompileJar UP-TO-DATE
+Caching disabled for task ':app:bundleDebugClassesToCompileJar' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:bundleDebugClassesToCompileJar' as it is up-to-date.
+work action resolve classes.jar (project :app) (Thread[#896,Execution worker,5,main]) started.
+Resolve mutations for :app:preDebugUnitTestBuild (Thread[#896,Execution worker,5,main]) started.
+:app:preDebugUnitTestBuild (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+Skipping task ':app:preDebugUnitTestBuild' as it has no actions.
+Resolve mutations for :app:compileDebugUnitTestKotlin (Thread[#896,Execution worker,5,main]) started.
+:app:compileDebugUnitTestKotlin (Thread[#896,Execution worker,5,main]) started.
+Resolve mutations for :app:javaPreCompileDebugUnitTest (Thread[#902,Execution worker Thread 7,5,main]) started.
+:app:javaPreCompileDebugUnitTest (Thread[#902,Execution worker Thread 7,5,main]) started.
+
+> Task :app:javaPreCompileDebugUnitTest UP-TO-DATE
+Caching disabled for task ':app:javaPreCompileDebugUnitTest' because:
+  Build cache is disabled
+Skipping task ':app:javaPreCompileDebugUnitTest' as it is up-to-date.
+Resolve mutations for :app:processDebugJavaRes (Thread[#902,Execution worker Thread 7,5,main]) started.
+:app:processDebugJavaRes (Thread[#902,Execution worker Thread 7,5,main]) started.
+
+> Task :app:processDebugJavaRes UP-TO-DATE
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/main/resources', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/debug/resources', not found
+Caching disabled for task ':app:processDebugJavaRes' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:processDebugJavaRes' as it is up-to-date.
+work action resolve out (project :app) (Thread[#902,Execution worker Thread 7,5,main]) started.
+
+> Task :app:compileDebugUnitTestKotlin
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/test/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/test/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/test/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+Custom actions are attached to task ':app:compileDebugUnitTestKotlin'.
+Caching disabled for task ':app:compileDebugUnitTestKotlin' because:
+  Build cache is disabled
+Task ':app:compileDebugUnitTestKotlin' is not up-to-date because:
+  Input property 'sources' file /home/akib/AndroidStudioProjects/RealState/app/src/test/java/com/example/realstate/ApiTest.kt has changed.
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/test/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/test/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/test/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/test/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/test/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/test/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/test/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/test/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/kotlin', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/java', not found
+Kotlin source files: /home/akib/AndroidStudioProjects/RealState/app/src/test/java/com/example/realstate/ExampleUnitTest.kt, /home/akib/AndroidStudioProjects/RealState/app/src/test/java/com/example/realstate/ApiTest.kt
+Java source files: 
+Script source files: 
+Script file extensions: 
+Using Kotlin/JVM incremental compilation
+[KOTLIN] Kotlin compilation 'jdkHome' argument: /opt/android-studio/jbr
+Options for KOTLIN DAEMON: IncrementalCompilationOptions(super=CompilationOptions(compilerMode=INCREMENTAL_COMPILER, targetPlatform=JVM, reportCategories=[0, 3], reportSeverity=2, requestedCompilationResults=[0], kotlinScriptExtensions=[]), sourceChanges=org.jetbrains.kotlin.buildtools.api.SourcesChanges$Known@3dccedfd, classpathChanges=NoChanges, workingDir=/home/akib/AndroidStudioProjects/RealState/app/build/kotlin/compileDebugUnitTestKotlin/cacheable, multiModuleICSettings=MultiModuleICSettings(buildHistoryFile=/home/akib/AndroidStudioProjects/RealState/app/build/kotlin/compileDebugUnitTestKotlin/local-state/build-history.bin, useModuleDetection=true), icFeatures=IncrementalCompilationFeatures(usePreciseJavaTracking=true, withAbiSnapshot=false, preciseCompilationResultsBackup=true, keepIncrementalCompilationCachesInMemory=true, enableUnsafeIncrementalCompilationForMultiplatform=false, enableMonotonousIncrementalCompileSetExpansion=true), outputFiles=[/home/akib/AndroidStudioProjects/RealState/app/build/intermediates/built_in_kotlinc/debugUnitTest/compileDebugUnitTestKotlin/classes, /home/akib/AndroidStudioProjects/RealState/app/build/kotlin/compileDebugUnitTestKotlin/cacheable, /home/akib/AndroidStudioProjects/RealState/app/build/kotlin/compileDebugUnitTestKotlin/local-state])
+Finished executing kotlin compiler using DAEMON strategy
+Resolve mutations for :app:compileDebugUnitTestJavaWithJavac (Thread[#896,Execution worker,5,main]) started.
+:app:compileDebugUnitTestJavaWithJavac (Thread[#896,Execution worker,5,main]) started.
+
+> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
+Skipping task ':app:compileDebugUnitTestJavaWithJavac' as it has no source files and no previous output files.
+Resolve mutations for :app:processDebugUnitTestJavaRes (Thread[#902,Execution worker Thread 7,5,main]) started.
+:app:processDebugUnitTestJavaRes (Thread[#902,Execution worker Thread 7,5,main]) started.
+
+> Task :app:processDebugUnitTestJavaRes UP-TO-DATE
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/test/resources', not found
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/resources', not found
+Caching disabled for task ':app:processDebugUnitTestJavaRes' because:
+  Build cache is disabled
+  Caching has been disabled for the task
+Skipping task ':app:processDebugUnitTestJavaRes' as it is up-to-date.
+Resolve mutations for :app:testDebugUnitTest (Thread[#902,Execution worker Thread 7,5,main]) started.
+:app:testDebugUnitTest (Thread[#902,Execution worker Thread 7,5,main]) started.
+Gradle Test Executor 3 started executing tests.
+
+> Task :app:testDebugUnitTest
+Caching disabled for task ':app:testDebugUnitTest' because:
+  Build cache is disabled
+Task ':app:testDebugUnitTest' is not up-to-date because:
+  Output property 'binaryResultsDirectory' file /home/akib/AndroidStudioProjects/RealState/app/build/test-results/testDebugUnitTest/binary has been removed.
+  Output property 'binaryResultsDirectory' file /home/akib/AndroidStudioProjects/RealState/app/build/test-results/testDebugUnitTest/binary/output.bin has been removed.
+  Output property 'binaryResultsDirectory' file /home/akib/AndroidStudioProjects/RealState/app/build/test-results/testDebugUnitTest/binary/output.bin.idx has been removed.
+  and more...
+file or directory '/home/akib/AndroidStudioProjects/RealState/app/build/intermediates/javac/debugUnitTest/compileDebugUnitTestJavaWithJavac/classes', not found
+Starting process 'Gradle Test Executor 3'. Working directory: /home/akib/AndroidStudioProjects/RealState/app Command: /opt/android-studio/jbr/bin/java -Djava.awt.headless=true -Djava.library.path=/usr/java/packages/lib:/usr/lib64:/lib64:/lib:/usr/lib:/home/akib/AndroidStudioProjects/RealState/app/src/testDebug/jniLibs:/home/akib/AndroidStudioProjects/RealState/app/src/test/jniLibs -Dorg.gradle.internal.worker.tmpdir=/home/akib/AndroidStudioProjects/RealState/app/build/tmp/testDebugUnitTest/work --add-opens=java.base/java.io=ALL-UNNAMED @/home/akib/.gradle/.tmp/gradle-worker-classpath15341491208155471875txt -Xmx512m -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -ea worker.org.gradle.process.internal.worker.GradleWorkerMain 'Gradle Test Executor 3'
+Successfully started process 'Gradle Test Executor 3'
+
+ApiTest > testDashboard STANDARD_OUT
+    Fetching booked properties...
+
+ApiTest > testDashboard STANDARD_ERROR
+    Apr 27, 2026 1:08:57 AM okhttp3.internal.platform.Platform log
+    INFO: --> GET https://real-estate-app-backend-six.vercel.app/api/v1/booked-property
+    Apr 27, 2026 1:08:57 AM okhttp3.internal.platform.Platform log
+    INFO: --> END GET
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: <-- 200 https://real-estate-app-backend-six.vercel.app/api/v1/booked-property (840ms)
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: access-control-allow-origin: *
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: age: 0
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: cache-control: public, max-age=0, must-revalidate
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: content-type: application/json; charset=utf-8
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: date: Sun, 26 Apr 2026 19:09:01 GMT
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: etag: W/"1d72-k/VCEVAY9Ia3GXBBZi0VnpInUro"
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: server: Vercel
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: strict-transport-security: max-age=63072000; includeSubDomains; preload
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: x-powered-by: Express
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: x-vercel-cache: MISS
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: x-vercel-enable-rewrite-caching: 1
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: x-vercel-id: bom1::iad1::7cf5t-1777230541127-e828cad0ef76
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: 
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: {"success":true,"message":"Booked properties retrieved successfully","data":[{"id":3,"propertyId":3,"userId":"a80ecf75-dac4-4850-bb37-462bdcf9e726","agentId":"913fc870-beba-44de-9a0d-98b3c79ddb2c","proposedAmount":"$5000","isPropAmountAccepted":false,"isSold":false,"bookedAt":"2026-03-27T13:06:05.746Z","updatedAt":"2026-03-27T13:06:05.746Z","property":{"id":3,"agentId":"508f7879-e762-4666-869f-539c017df80a","title":"Family House for Sale","description":"Amazing modernfamily house with garden, parking, and easy highway access.","imageUrl":"https://images.pexels.com/photos/565324/pexels-photo-565324.jpeg","location":"Purbachal,Dhaka","priceRange":"$2000-$2800","propertyType":"HOUSE","isVerified":false,"isAdvertised":false,"isBought":false,"generatedAt":"2026-03-25T15:29:13.081Z","updatedAt":"2026-04-25T12:21:22.877Z"},"agent":{"id":"913fc870-beba-44de-9a0d-98b3c79ddb2c","userId":"e09213da-bab4-4f99-9c46-324c329db9f0","isVerified":false,"isFraud":false},"user":{"id":"a80ecf75-dac4-4850-bb37-462bdcf9e726","name":"Fatema Begum","email":"fatema.begum@example.com","image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA..."}},{"id":4,"propertyId":4,"userId":"b2eed1d3-5e87-448f-862d-b581b9a52296","agentId":"bfd8fe55-a821-47b1-b645-424cc7f9889a","proposedAmount":"$1800","isPropAmountAccepted":false,"isSold":false,"bookedAt":"2026-03-27T13:06:19.104Z","updatedAt":"2026-03-27T13:06:19.104Z","property":{"id":4,"agentId":"913fc870-beba-44de-9a0d-98b3c79ddb2c","title":"Commercial Space in MotijheeL","description":"Prime office space suitable for corporate headquarters.","imageUrl":"https://images.pexels.com/photos/4290722/pexels-photo-4290722.jpeg","location":"Motijheel, Dhaka","priceRange":"$5000-$7000","propertyType":"COMMERCIAL","isVerified":true,"isAdvertised":false,"isBought":false,"generatedAt":"2026-03-25T15:31:35.728Z","updatedAt":"2026-04-26T08:24:35.475Z"},"agent":{"id":"bfd8fe55-a821-47b1-b645-424cc7f9889a","userId":"04dc6408-3d3f-48e0-b230-5d249c29811e","isVerified":false,"isFraud":false},"user":{"id":"b2eed1d3-5e87-448f-862d-b581b9a52296","name":"Akash Chowdhury","email":"akash.chowdhury@example.com","image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA..."}},{"id":5,"propertyId":5,"userId":"3c1d61d6-25e7-4e03-83dc-a61d90e4e38e","agentId":"508f7879-e762-4666-869f-539c017df80a","proposedAmount":"$105000","isPropAmountAccepted":false,"isSold":false,"bookedAt":"2026-03-27T13:06:33.041Z","updatedAt":"2026-03-27T13:06:33.041Z","property":{"id":5,"agentId":"bfd8fe55-a821-47b1-b645-424cc7f9889a","title":"Family House in Khulshi","description":"Beautiful two-story house with garden and garage.","imageUrl":"https://images.pexels.com/photos/5071130/pexels-photo-5071130.jpeg","location":"Khulshi, Chattogram","priceRange":"$1500-$2000","propertyType":"HOUSE","isVerified":true,"isAdvertised":false,"isBought":false,"generatedAt":"2026-03-25T15:31:50.799Z","updatedAt":"2026-04-26T08:23:44.514Z"},"agent":{"id":"508f7879-e762-4666-869f-539c017df80a","userId":"b6747d21-d5b8-48c9-babd-8487f58eb92f","isVerified":false,"isFraud":false},"user":{"id":"3c1d61d6-25e7-4e03-83dc-a61d90e4e38e","name":"Nusrat Jahan","email":"nusrat.jahan@example.com","image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA..."}},{"id":6,"propertyId":6,"userId":"950c7e11-4af8-44b3-bd90-38ddfbefb836","agentId":"7ff640de-a091-41d9-af5e-1a727674e398","proposedAmount":"$2000","isPropAmountAccepted":false,"isSold":false,"bookedAt":"2026-03-27T13:06:44.034Z","updatedAt":"2026-03-27T13:06:44.034Z","property":{"id":6,"agentId":"508f7879-e762-4666-869f-539c017df80a","title":"Land Plot in Bashundhara","description":"Ideal plot for residential development in a growing neighborhood.","imageUrl":"https://images.pexels.com/photos/4290722/pexels-photo-4290722.jpeg","location":"Bashundhara, Dhaka","priceRange":"$100000-$120000","propertyType":"LAND","isVerified":false,"isAdvertised":false,"isBought":false,"generatedAt":"2026-03-25T15:32:14.028Z","updatedAt":"2026-03-25T15:32:14.028Z"},"agent":{"id":"7ff640de-a091-41d9-af5e-1a727674e398","userId":"3b95b14d-d66e-43f1-ba3c-96318dc3fea4","isVerified":false,"isFraud":true},"user":{"id":"950c7e11-4af8-44b3-bd90-38ddfbefb836","name":"Mehedi Hasan","email":"mehedi.hasan@example.com","image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA..."}},{"id":7,"propertyId":7,"userId":"a80ecf75-dac4-4850-bb37-462bdcf9e726","agentId":"913fc870-beba-44de-9a0d-98b3c79ddb2c","proposedAmount":"$3500","isPropAmountAccepted":false,"isSold":false,"bookedAt":"2026-03-27T13:06:57.245Z","updatedAt":"2026-03-27T13:06:57.245Z","property":{"id":7,"agentId":"7ff640de-a091-41d9-af5e-1a727674e398","title":"Modern Apartment in Banani","description":"Stylish apartment with open floor plan and balcony view.","imageUrl":"https://images.pexels.com/photos/8469931/pexels-photo-8469931.jpeg","location":"Banani, Dhaka","priceRange":"$1800-$2200","propertyType":"APARTMENT","isVerified":true,"isAdvertised":false,"isBought":false,"generatedAt":"2026-03-25T15:32:29.714Z","updatedAt":"2026-04-26T08:26:44.006Z"},"agent":{"id":"913fc870-beba-44de-9a0d-98b3c79ddb2c","userId":"e09213da-bab4-4f99-9c46-324c329db9f0","isVerified":false,"isFraud":false},"user":{"id":"a80ecf75-dac4-4850-bb37-462bdcf9e726","name":"Fatema Begum","email":"fatema.begum@example.com","image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA..."}},{"id":1,"propertyId":1,"userId":"3c1d61d6-25e7-4e03-83dc-a61d90e4e38e","agentId":"508f7879-e762-4666-869f-539c017df80a","proposedAmount":"$750","isPropAmountAccepted":true,"isSold":true,"bookedAt":"2026-03-27T13:05:33.036Z","updatedAt":"2026-03-28T16:58:54.405Z","property":{"id":1,"agentId":"508f7879-e762-4666-869f-539c017df80a","title":"Commercial Shop Space","description":"Street-facing commercial space suitable for retail or small office setup.","imageUrl":"https://images.pexels.com/photos/209292/pexels-photo-209292.jpeg","location":"GEC Circle, Chattogram","priceRange":"$1500-$1900","propertyType":"COMMERCIAL","isVerified":false,"isAdvertised":false,"isBought":true,"generatedAt":"2026-03-25T15:27:11.923Z","updatedAt":"2026-03-25T15:27:11.923Z"},"agent":{"id":"508f7879-e762-4666-869f-539c017df80a","userId":"b6747d21-d5b8-48c9-babd-8487f58eb92f","isVerified":false,"isFraud":false},"user":{"id":"3c1d61d6-25e7-4e03-83dc-a61d90e4e38e","name":"Nusrat Jahan","email":"nusrat.jahan@example.com","image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA..."}},{"id":2,"propertyId":2,"userId":"950c7e11-4af8-44b3-bd90-38ddfbefb836","agentId":"7ff640de-a091-41d9-af5e-1a727674e398","proposedAmount":"$1200","isPropAmountAccepted":true,"isSold":true,"bookedAt":"2026-03-27T13:05:48.978Z","updatedAt":"2026-04-26T16:53:20.271Z","property":{"id":2,"agentId":"508f7879-e762-4666-869f-539c017df80a","title":"Luxury Apartment in Gulshan","description":"Modern fully furnished apartment with rooftop access and 24/7 security in the heart of Gulshan.","imageUrl":"https://images.pexels.com/photos/209218/pexels-photo-209218.jpeg","location":"Gulshan-2, Dhaka","priceRange":"$2000-$2500","propertyType":"COMMERCIAL","isVerified":false,"isAdvertised":false,"isBought":true,"generatedAt":"2026-03-25T15:27:57.790Z","updatedAt":"2026-04-26T16:53:20.279Z"},"agent":{"id":"7ff640de-a091-41d9-af5e-1a727674e398","userId":"3b95b14d-d66e-43f1-ba3c-96318dc3fea4","isVerified":false,"isFraud":true},"user":{"id":"950c7e11-4af8-44b3-bd90-38ddfbefb836","name":"Mehedi Hasan","email":"mehedi.hasan@example.com","image":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA..."}}]}
+    Apr 27, 2026 1:08:58 AM okhttp3.internal.platform.Platform log
+    INFO: <-- END HTTP (7538-byte body)
+
+ApiTest > testDashboard STANDARD_OUT
+    Booked Properties Success: true, size: 7
+
+Gradle Test Executor 3 finished executing tests.
+
+> Task :app:testDebugUnitTest
+Finished generating test XML results (0.0 secs) into: /home/akib/AndroidStudioProjects/RealState/app/build/test-results/testDebugUnitTest
+Generating HTML test report...
+Finished generating test html results (0.002 secs) into: /home/akib/AndroidStudioProjects/RealState/app/build/reports/tests/testDebugUnitTest
+Build f34ece91-ce71-4caa-b781-42bbf9759c8e is closed
+
+BUILD SUCCESSFUL in 5s
+25 actionable tasks: 3 executed, 22 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.2.1/userguide/configuration_cache_enabling.html
