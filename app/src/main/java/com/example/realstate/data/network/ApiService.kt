@@ -3,6 +3,22 @@ package com.example.realstate.data.network
 import com.example.realstate.data.model.*
 import retrofit2.http.*
 
+interface AuthApiService {
+    @POST("auth/signup")
+    suspend fun signup(@Body body: Map<String, @JvmSuppressWildcards Any>): BaseResponse<UserDto>
+
+    @POST("auth/signin")
+    suspend fun signin(@Body body: Map<String, String>): BaseResponse<UserDto>
+}
+
+interface VerificationApiService {
+    @GET("verification/verify-user/{userId}")
+    suspend fun verifyEmail(
+        @Path("userId") userId: String,
+        @Body body: Map<String, String>
+    ): BaseResponse<Boolean>
+}
+
 interface PropertyApiService {
     @GET("property")
     suspend fun getAllProperties(): BaseResponse<List<PropertyDto>>

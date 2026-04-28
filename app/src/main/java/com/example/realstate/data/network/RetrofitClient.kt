@@ -51,4 +51,12 @@ object RetrofitClient {
     val soldPropertyApi: SoldPropertyApiService by lazy {
         retrofit.create(SoldPropertyApiService::class.java)
     }
+
+    val authApi: AuthApiService by lazy {
+        retrofit.create(AuthApiService::class.java)
+    }
+
+    val verificationApi: VerificationApiService by lazy {
+        retrofit.create(VerificationApiService::class.java)
+    }
 }
