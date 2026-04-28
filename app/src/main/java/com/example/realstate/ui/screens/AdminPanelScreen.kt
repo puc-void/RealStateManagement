@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import com.example.realstate.ui.components.MultiPinMapCard
+import androidx.compose.foundation.ExperimentalFoundationApi
 import com.google.android.gms.maps.model.LatLng
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -89,7 +90,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import android.location.Geocoder
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AdminPanelScreen(
     onNavigateToDetail: (String) -> Unit,
@@ -267,11 +268,11 @@ fun AdminPanelScreen(
                         else -> uiState.properties
                     }
 
-                    itemsIndexed(filteredProperties) { index, property ->
+                    itemsIndexed(filteredProperties, key = { _, property -> "prop_${property.id}" }) { index, property ->
                         AnimatedVisibility(
                             visible = true,
-                            enter = fadeIn(animationSpec = tween(500, delayMillis = index * 50)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500, delayMillis = index * 50)),
-                            modifier = Modifier.padding(horizontal = 24.dp)
+                            enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500)),
+                            modifier = Modifier.padding(horizontal = 24.dp).animateItemPlacement()
                         ) {
                             PropertyManagementCard(
                                 property = property,
@@ -291,11 +292,11 @@ fun AdminPanelScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                     }
 
-                    itemsIndexed(uiState.users) { index, user ->
+                    itemsIndexed(uiState.users, key = { _, user -> "user_${user.id ?: ""}" }) { index, user ->
                          AnimatedVisibility(
                             visible = true,
-                            enter = fadeIn(animationSpec = tween(500, delayMillis = index * 50)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500, delayMillis = index * 50)),
-                            modifier = Modifier.padding(horizontal = 24.dp)
+                            enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500)),
+                            modifier = Modifier.padding(horizontal = 24.dp).animateItemPlacement()
                         ) {
                             UserManagementCard(
                                 user = user,
@@ -322,11 +323,11 @@ fun AdminPanelScreen(
                             Text("No agents found", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 24.dp))
                         }
                     }
-                    itemsIndexed(uiState.agents) { index, agent ->
+                    itemsIndexed(uiState.agents, key = { _, agent -> "agent_${agent.id}" }) { index, agent ->
                          AnimatedVisibility(
                             visible = true,
-                            enter = fadeIn(animationSpec = tween(500, delayMillis = index * 50)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500, delayMillis = index * 50)),
-                            modifier = Modifier.padding(horizontal = 24.dp)
+                            enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500)),
+                            modifier = Modifier.padding(horizontal = 24.dp).animateItemPlacement()
                         ) {
                             AgentManagementCard(
                                 agent = agent,
@@ -350,8 +351,8 @@ fun AdminPanelScreen(
                         itemsIndexed(uiState.soldProperties) { index, soldProp ->
                             AnimatedVisibility(
                                 visible = true,
-                                enter = fadeIn(animationSpec = tween(500, delayMillis = index * 50)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500, delayMillis = index * 50)),
-                                modifier = Modifier.padding(horizontal = 24.dp)
+                                enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500)),
+                                modifier = Modifier.padding(horizontal = 24.dp).animateItemPlacement()
                             ) {
                                 SoldPropertyCard(
                                     soldProp = soldProp,
@@ -371,11 +372,11 @@ fun AdminPanelScreen(
                         }
                     }
 
-                    itemsIndexed(uiState.reviews) { index, review ->
+                    itemsIndexed(uiState.reviews, key = { _, review -> "rev_${review.id}" }) { index, review ->
                         AnimatedVisibility(
                             visible = true,
-                            enter = fadeIn(animationSpec = tween(500, delayMillis = index * 50)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500, delayMillis = index * 50)),
-                            modifier = Modifier.padding(horizontal = 24.dp)
+                            enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500)),
+                            modifier = Modifier.padding(horizontal = 24.dp).animateItemPlacement()
                         ) {
                             ReviewItem(
                                 review = review,

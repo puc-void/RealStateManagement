@@ -14,7 +14,7 @@ object MockData {
     )
 
     const val currentWishlistId = "0d1681c0-aba2-4393-969b-293dbb070999"
-    const val currentAgentId = "508f7879-e762-4666-869f-539c017df80a"
+    var currentAgentId = "508f7879-e762-4666-869f-539c017df80a"
 
     val users = listOf(
         User("Abdul Hannan", "abdul.hannan@example.com", "https://i.pravatar.cc/150?img=11", UserRole.ADMIN, id = "e5592ed8-103a-407e-960b-28594e85cfff"),

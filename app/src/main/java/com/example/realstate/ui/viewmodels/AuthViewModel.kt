@@ -97,7 +97,7 @@ class AuthViewModel : ViewModel() {
             try {
                 val response = RetrofitClient.authApi.signin(mapOf("email" to email, "password" to password))
                 if (response.success) {
-                    val user = response.data
+                    val user = response.data ?: return@launch
                     val roleEnum = when (user.role?.uppercase()) {
                         "ADMIN" -> UserRole.ADMIN
                         "AGENT" -> UserRole.AGENT
@@ -117,6 +117,21 @@ class AuthViewModel : ViewModel() {
                         joinDate    = user.generatedAt?.take(10) ?: "",
                         status      = user.status ?: "active"
                     )
+
+                    // If agent, fetch and store the agentId
+                    if (roleEnum == UserRole.AGENT) {
+                        try {
+                            val agentsRes = RetrofitClient.agentApi.getAllAgents()
+                            if (agentsRes.success && agentsRes.data != null) {
+                                val myAgent = agentsRes.data.find { it.userId == user.id }
+                                if (myAgent != null) {
+                                    MockData.currentAgentId = myAgent.id
+                                }
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
 
                     _state.update { AuthState.SignInSuccess(roleEnum) }
                 } else {

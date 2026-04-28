@@ -61,11 +61,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.realstate.data.MockData
 import com.example.realstate.ui.components.MultiPinMapCard
+import androidx.compose.foundation.ExperimentalFoundationApi
 import com.example.realstate.ui.viewmodels.AgentViewModel
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AgentDashboardScreen(
     onNavigateToDetail: (String) -> Unit,
@@ -81,7 +82,7 @@ fun AgentDashboardScreen(
     }
     val listState = androidx.compose.foundation.lazy.rememberLazyListState()
     val scope = androidx.compose.runtime.rememberCoroutineScope()
-    val agentName = MockData.users.find { it.id == MockData.currentAgentId }?.name ?: "Agent"
+    val agentName = MockData.currentUser.name
     
     // Simple polling for new bookings every 30s
     LaunchedEffect(Unit) {
@@ -271,11 +272,11 @@ fun AgentDashboardScreen(
                 else -> uiState.properties
             }
 
-            itemsIndexed(filteredProperties) { index, property ->
+            itemsIndexed(filteredProperties, key = { _, property -> "prop_${property.id}" }) { index, property ->
                 AnimatedVisibility(
                     visible = true,
-                    enter = fadeIn(animationSpec = tween(500, delayMillis = index * 50)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500, delayMillis = index * 50)),
-                    modifier = Modifier.padding(horizontal = 24.dp)
+                    enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500)),
+                    modifier = Modifier.padding(horizontal = 24.dp).animateItemPlacement()
                 ) {
                     PropertyManagementCard(
                         property = property,
@@ -310,10 +311,11 @@ fun AgentDashboardScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
 
-            itemsIndexed(filteredBookings) { index, booking ->
+            itemsIndexed(filteredBookings, key = { _, booking -> "book_${booking.id}" }) { index, booking ->
                 AnimatedVisibility(
                     visible = true,
-                    enter = fadeIn(animationSpec = tween(500, delayMillis = index * 50)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500, delayMillis = index * 50))
+                    enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500)),
+                    modifier = Modifier.animateItemPlacement()
                 ) {
                     AgentBookingItem(
                         booking = booking,

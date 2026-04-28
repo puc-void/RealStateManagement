@@ -29,7 +29,7 @@ class AgentViewModel : ViewModel() {
     val uiState: StateFlow<AgentUiState> = _uiState.asStateFlow()
 
     // Use current agent ID from MockData
-    private val agentId = MockData.currentAgentId
+    private val agentId get() = MockData.currentAgentId
 
     init {
         refreshDashboard()
@@ -45,7 +45,7 @@ class AgentViewModel : ViewModel() {
                 val response = propertiesDeferred.await()
                 val bookedResponse = bookedDeferred.await()
 
-                if (response.success) {
+                if (response.success && response.data != null) {
                     val props = response.data.map { dto ->
                         Property(
                             id = dto.id.toString(),
@@ -59,8 +59,8 @@ class AgentViewModel : ViewModel() {
                             beds = 0,
                             baths = 0,
                             area = "TBD",
-                            agentName = MockData.users.find { u -> u.id == dto.agentId }?.name ?: "Unknown",
-                            agentPicUrl = "https://i.pravatar.cc/150",
+                            agentName = MockData.currentUser.name,
+                            agentPicUrl = MockData.currentUser.profilePicUrl,
                             amenities = emptyList()
                         )
                     }
@@ -111,6 +111,10 @@ class AgentViewModel : ViewModel() {
     }
 
     fun deleteProperty(propertyId: String) {
+        // Optimistic update
+        val updatedList = _uiState.value.properties.filter { it.id != propertyId }
+        _uiState.update { it.copy(properties = updatedList) }
+        
         viewModelScope.launch {
             try {
                 val response = RetrofitClient.propertyApi.deleteProperty(propertyId)
@@ -118,9 +122,11 @@ class AgentViewModel : ViewModel() {
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(error = response.message) }
+                    refreshDashboard() // Rollback/sync
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
+                refreshDashboard() // Rollback/sync
             }
         }
     }

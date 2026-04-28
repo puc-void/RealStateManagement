@@ -55,7 +55,7 @@ class AdminViewModel : ViewModel() {
                 val agentsResponse = try { agentsDeferred.await() } catch (e: Exception) { null }
                 val soldPropertiesResponse = try { soldPropertiesDeferred.await() } catch (e: Exception) { null }
 
-                if (propertiesResponse != null && propertiesResponse.success) {
+                if (propertiesResponse != null && propertiesResponse.success && propertiesResponse.data != null) {
                     val props = propertiesResponse.data.map { dto ->
                         Property(
                             id = dto.id.toString(),
@@ -93,10 +93,10 @@ class AdminViewModel : ViewModel() {
                         }
                     }
 
-                    val reviews = if (reviewsResponse != null && reviewsResponse.success) reviewsResponse.data else emptyList()
-                    val users = if (usersResponse != null && usersResponse.success) usersResponse.data else emptyList()
-                    val agents = if (agentsResponse != null && agentsResponse.success) agentsResponse.data else emptyList()
-                    val soldProperties = if (soldPropertiesResponse != null && soldPropertiesResponse.success) soldPropertiesResponse.data else emptyList()
+                    val reviews = if (reviewsResponse != null && reviewsResponse.success) reviewsResponse.data ?: emptyList() else emptyList()
+                    val users = if (usersResponse != null && usersResponse.success) usersResponse.data ?: emptyList() else emptyList()
+                    val agents = if (agentsResponse != null && agentsResponse.success) agentsResponse.data ?: emptyList() else emptyList()
+                    val soldProperties = if (soldPropertiesResponse != null && soldPropertiesResponse.success) soldPropertiesResponse.data ?: emptyList() else emptyList()
 
                     _uiState.update { it.copy(
                         properties = props,
@@ -119,6 +119,10 @@ class AdminViewModel : ViewModel() {
     }
 
     fun deleteProperty(propertyId: String) {
+        // Optimistic update
+        val updatedList = _uiState.value.properties.filter { it.id != propertyId }
+        _uiState.update { it.copy(properties = updatedList) }
+
         viewModelScope.launch {
             try {
                 val response = RetrofitClient.propertyApi.deleteProperty(propertyId)
@@ -126,9 +130,11 @@ class AdminViewModel : ViewModel() {
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(error = response.message) }
+                    refreshDashboard() // Rollback
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
+                refreshDashboard() // Rollback
             }
         }
     }
@@ -222,6 +228,10 @@ class AdminViewModel : ViewModel() {
     }
 
     fun deleteReview(reviewId: String) {
+        // Optimistic update
+        val updatedList = _uiState.value.reviews.filter { it.id != reviewId }
+        _uiState.update { it.copy(reviews = updatedList) }
+
         viewModelScope.launch {
             try {
                 val response = RetrofitClient.reviewApi.deleteReview(reviewId)
@@ -229,14 +239,20 @@ class AdminViewModel : ViewModel() {
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(error = response.message) }
+                    refreshDashboard()
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
+                refreshDashboard()
             }
         }
     }
 
     fun deleteUser(userId: String) {
+        // Optimistic update
+        val updatedList = _uiState.value.users.filter { it.id != userId }
+        _uiState.update { it.copy(users = updatedList) }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
@@ -245,9 +261,11 @@ class AdminViewModel : ViewModel() {
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
+                    refreshDashboard()
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
+                refreshDashboard()
             }
         }
     }
@@ -311,6 +329,10 @@ class AdminViewModel : ViewModel() {
     }
 
     fun deleteAgent(agentId: String) {
+        // Optimistic update
+        val updatedList = _uiState.value.agents.filter { it.id != agentId }
+        _uiState.update { it.copy(agents = updatedList) }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
@@ -319,9 +341,11 @@ class AdminViewModel : ViewModel() {
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
+                    refreshDashboard()
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
+                refreshDashboard()
             }
         }
     }
