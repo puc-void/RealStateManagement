@@ -1,17 +1,23 @@
 package com.example.realstate.ui.screens
 
+import android.location.Geocoder
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,6 +27,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -29,7 +40,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.realstate.data.MockData
 import com.example.realstate.data.Property
+import com.example.realstate.ui.components.MultiPinMapCard
+import com.example.realstate.ui.components.ShimmerBox
 import com.example.realstate.ui.viewmodels.HomeViewModel
+import com.google.android.gms.maps.model.LatLng
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +52,25 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel()
 ) {
     val uiState by homeViewModel.uiState.collectAsState()
+    var isMapView by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val geocoder = remember { Geocoder(context) }
+    val markers = remember { mutableStateListOf<Pair<LatLng, String>>() }
+
+    LaunchedEffect(uiState.filteredProperties) {
+        markers.clear()
+        uiState.filteredProperties.forEach { property ->
+            try {
+                @Suppress("DEPRECATION")
+                val addresses = geocoder.getFromLocationName(property.location, 1)
+                if (!addresses.isNullOrEmpty()) {
+                    markers.add(LatLng(addresses[0].latitude, addresses[0].longitude) to property.title)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -53,6 +86,18 @@ fun HomeScreen(
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = { isMapView = !isMapView },
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                    ) {
+                        Icon(
+                            if (isMapView) Icons.Default.ViewList else Icons.Default.Map,
+                            contentDescription = "Toggle Map",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                     IconButton(onClick = { /* TODO: Profile */ }) {
                         AsyncImage(
                             model = MockData.currentUser.profilePicUrl,
@@ -81,9 +126,10 @@ fun HomeScreen(
         ) {
             item {
                 Text(
-                    text = "Find Your\nPerfect Aura",
+                    text = "Welcome to\nNestora",
                     style = MaterialTheme.typography.displayMedium,
                     color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                 )
             }
@@ -128,55 +174,96 @@ fun HomeScreen(
                 }
             }
 
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Featured Estates",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        "See all",
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+            if (isMapView) {
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Box(modifier = Modifier.padding(horizontal = 24.dp)) {
+                        MultiPinMapCard(
+                            markers = markers,
+                            height = 500.dp,
+                            sectionLabel = "Property Locations",
+                            defaultZoom = 4f,
+                            isLoading = uiState.isLoading
+                        )
+                    }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                val featuredProps = uiState.filteredProperties.take(3)
-                if (featuredProps.isNotEmpty()) {
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+            } else {
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        items(featuredProps) { property ->
-                            FeaturedPropertyCard(property = property, onClick = { onPropertyClick(property.id) })
+                        Text(
+                            "Featured Estates",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            "See all",
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    if (uiState.isLoading) {
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 24.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(3) {
+                                ShimmerBox(modifier = Modifier.width(280.dp).height(320.dp), shape = RoundedCornerShape(24.dp))
+                            }
+                        }
+                    } else {
+                        val featuredProps = uiState.filteredProperties.take(3)
+                        if (featuredProps.isNotEmpty()) {
+                            LazyRow(
+                                contentPadding = PaddingValues(horizontal = 24.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                items(featuredProps) { property ->
+                                    FeaturedPropertyCard(property = property, onClick = { onPropertyClick(property.id) })
+                                }
+                            }
                         }
                     }
                 }
-            }
 
-            item {
-                Spacer(modifier = Modifier.height(32.dp))
-                Text(
-                    "Recommended for you",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
+                item {
+                    Spacer(modifier = Modifier.height(32.dp))
+                    Text(
+                        "Recommended for you",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
 
-            items(uiState.filteredProperties) { property ->
-                PropertyListItem(property = property, onClick = { onPropertyClick(property.id) })
+                if (uiState.isLoading) {
+                    items(5) {
+                        ShimmerBox(
+                            modifier = Modifier.fillMaxWidth().height(110.dp).padding(horizontal = 24.dp, vertical = 8.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                    }
+                } else {
+                    itemsIndexed(uiState.filteredProperties) { index, property ->
+                        AnimatedVisibility(
+                            visible = true,
+                            enter = fadeIn(animationSpec = tween(durationMillis = 500, delayMillis = index * 100)) + 
+                                    slideInVertically(initialOffsetY = { 50 }, animationSpec = tween(durationMillis = 500, delayMillis = index * 100))
+                        ) {
+                            PropertyListItem(property = property, onClick = { onPropertyClick(property.id) })
+                        }
+                    }
+                }
             }
             
             item {
@@ -188,12 +275,18 @@ fun HomeScreen(
 
 @Composable
 fun FeaturedPropertyCard(property: Property, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (isPressed) 0.95f else 1f, label = "scaleAnim")
+
     Card(
         modifier = Modifier
             .width(280.dp)
             .height(320.dp)
-            .clickable { onClick() }
-            .shadow(8.dp, RoundedCornerShape(24.dp)),
+            .scale(scale)
+            .clickable(interactionSource = interactionSource, indication = LocalIndication.current) { onClick() }
+            .shadow(8.dp, RoundedCornerShape(24.dp))
+            .animateContentSize(),
         shape = RoundedCornerShape(24.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -246,12 +339,18 @@ fun FeaturedPropertyCard(property: Property, onClick: () -> Unit) {
 
 @Composable
 fun PropertyListItem(property: Property, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(if (isPressed) 0.96f else 1f, label = "scaleAnimListItem")
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 8.dp)
-            .clickable { onClick() }
-            .shadow(4.dp, RoundedCornerShape(16.dp)),
+            .scale(scale)
+            .clickable(interactionSource = interactionSource, indication = LocalIndication.current) { onClick() }
+            .shadow(4.dp, RoundedCornerShape(16.dp))
+            .animateContentSize(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
@@ -274,10 +373,28 @@ fun PropertyListItem(property: Property, onClick: () -> Unit) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(property.category, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(14.dp))
+                    val ctx = LocalContext.current
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable {
+                            val encoded = java.net.URLEncoder.encode(property.location, "UTF-8")
+                            val mapsIntent = android.content.Intent(
+                                android.content.Intent.ACTION_VIEW,
+                                android.net.Uri.parse("geo:0,0?q=$encoded")
+                            ).apply { setPackage("com.google.android.apps.maps") }
+                            try {
+                                ctx.startActivity(mapsIntent)
+                            } catch (e: Exception) {
+                                ctx.startActivity(android.content.Intent(
+                                    android.content.Intent.ACTION_VIEW,
+                                    android.net.Uri.parse("https://www.google.com/maps/search/?api=1&query=$encoded")
+                                ))
+                            }
+                        }
+                    ) {
+                        Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(2.dp))
-                        Text(property.location, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text(property.location, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium)
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -296,3 +413,4 @@ fun PropertyListItem(property: Property, onClick: () -> Unit) {
         }
     }
 }
+

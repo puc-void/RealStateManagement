@@ -12,6 +12,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -38,15 +42,30 @@ fun MainScreen(
     val user = MockData.currentUser
     
     val navItems = remember(user.role) {
-        val items = mutableListOf(
-            BottomNavItem("home", "Home", Icons.Default.Home),
-            BottomNavItem("orders", "Orders", Icons.Default.List),
-            BottomNavItem("profile", "Profile", Icons.Default.Person)
-        )
-        if (user.role == UserRole.ADMIN || user.role == UserRole.SUB_ADMIN) {
-            items.add(1, BottomNavItem("admin", "Admin", Icons.Default.Security))
+        when (user.role) {
+            UserRole.USER -> listOf(
+                BottomNavItem("home", "Home", Icons.Default.Home),
+                BottomNavItem("orders", "Orders", Icons.Default.List),
+                BottomNavItem("profile", "Profile", Icons.Default.Person)
+            )
+            
+            UserRole.AGENT -> listOf(
+                BottomNavItem("agent_dashboard", "Dashboard", Icons.Default.Dashboard),
+                BottomNavItem("profile", "Profile", Icons.Default.Person)
+            )
+            UserRole.ADMIN -> listOf(
+                BottomNavItem("admin_dashboard", "Admin", Icons.Default.AdminPanelSettings),
+                BottomNavItem("profile", "Profile", Icons.Default.Person)
+            )
         }
-        items
+    }
+
+    val startDest = remember(user.role) {
+        when (user.role) {
+            UserRole.USER -> "home"
+            UserRole.AGENT -> "agent_dashboard"
+            UserRole.ADMIN -> "admin_dashboard"
+        }
     }
 
     ModalNavigationDrawer(
@@ -55,17 +74,17 @@ fun MainScreen(
             ModalDrawerSheet {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    "RealState Pro",
+                    "Nestora",
                     modifier = Modifier.padding(16.dp),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
                 HorizontalDivider()
                 NavigationDrawerItem(
-                    label = { Text("Home") },
+                    label = { Text("Home/Dashboard") },
                     selected = false,
                     onClick = { 
-                        navController.navigate("home")
+                        navController.navigate(startDest)
                         scope.launch { drawerState.close() }
                     },
                     icon = { Icon(Icons.Default.Home, null) }
@@ -76,17 +95,6 @@ fun MainScreen(
                     onClick = { scope.launch { drawerState.close() } },
                     icon = { Icon(Icons.Default.Settings, null) }
                 )
-                if (user.role == UserRole.ADMIN || user.role == UserRole.SUB_ADMIN) {
-                    NavigationDrawerItem(
-                        label = { Text(if (user.role == UserRole.ADMIN) "Admin Panel" else "Staff Panel") },
-                        selected = false,
-                        onClick = { 
-                            navController.navigate("admin")
-                            scope.launch { drawerState.close() }
-                        },
-                        icon = { Icon(Icons.Default.Security, null) }
-                    )
-                }
                 Spacer(modifier = Modifier.weight(1f))
                 NavigationDrawerItem(
                     label = { Text("Logout") },
@@ -100,36 +108,39 @@ fun MainScreen(
     ) {
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = { Text("RealState") },
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(Icons.Default.Menu, contentDescription = "Menu")
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = { /* Search */ }) {
-                            Icon(Icons.Default.Search, null)
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        titleContentColor = MaterialTheme.colorScheme.primary
+                // We'll hide the top bar for Agent and Admin since they have custom headers
+                if (user.role == UserRole.USER) {
+                    TopAppBar(
+                        title = { Text("Nestora", fontWeight = FontWeight.Bold) },
+                        navigationIcon = {
+                            IconButton(onClick = { scope.launch { drawerState.open() } }) {
+                                Icon(Icons.Default.Menu, contentDescription = "Menu")
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = { /* Search */ }) {
+                                Icon(Icons.Default.Search, null)
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            titleContentColor = MaterialTheme.colorScheme.primary
+                        )
                     )
-                )
+                }
             },
             containerColor = MaterialTheme.colorScheme.background,
             bottomBar = {
                 Box(
                     modifier = Modifier
                         .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
                 ) {
                     Surface(
                         modifier = Modifier
-                            .shadow(12.dp, RoundedCornerShape(24.dp))
-                            .clip(RoundedCornerShape(24.dp)),
-                        color = MaterialTheme.colorScheme.surface
+                            .shadow(16.dp, RoundedCornerShape(32.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                            .clip(RoundedCornerShape(32.dp)),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
                     ) {
                         NavigationBar(
                             containerColor = Color.Transparent,
@@ -179,62 +190,43 @@ fun MainScreen(
         ) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = "home",
-                modifier = Modifier.padding(innerPadding).fillMaxSize()
+                startDestination = startDest,
+                modifier = Modifier.padding(innerPadding).fillMaxSize(),
+                enterTransition = { fadeIn(animationSpec = tween(400)) + slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(400)) },
+                exitTransition = { fadeOut(animationSpec = tween(400)) + slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(400)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(400)) + slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(400)) },
+                popExitTransition = { fadeOut(animationSpec = tween(400)) + slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(400)) }
             ) {
                 composable("home") {
                     HomeScreen(onPropertyClick = onNavigateToDetail)
-                }
-                composable("admin") {
-                    AdminPanelScreen(user.role)
                 }
                 composable("orders") {
                     OrdersScreen(onPropertyClick = onNavigateToDetail)
                 }
                 composable("profile") {
-                    ProfileScreen(onLogout = onLogout)
+                    ProfileScreen(
+                        onLogout = onLogout,
+                        onNavigateToDetail = onNavigateToDetail
+                    )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun AdminPanelScreen(role: UserRole) {
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(
-            if (role == UserRole.ADMIN) "Admin Dashboard" else "Sub-Admin Dashboard", 
-            style = MaterialTheme.typography.headlineMedium
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        val stats = if (role == UserRole.ADMIN) {
-            listOf("Total Users" to "1,240", "Revenue" to "$45k", "Listings" to "450")
-        } else {
-            listOf("My Listings" to "12", "Leads" to "45", "Tasks" to "3")
-        }
-        
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            stats.forEach { (label, value) ->
-                Card(modifier = Modifier.weight(1f).padding(4.dp)) {
-                    Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        Text(label, style = MaterialTheme.typography.labelSmall)
-                    }
+                composable("agent_dashboard") {
+                    AgentDashboardScreen(onNavigateToDetail = onNavigateToDetail)
                 }
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        Text("Recent Activity", style = MaterialTheme.typography.titleLarge)
-        LazyColumn {
-            items(10) { i ->
-                ListItem(
-                    headlineContent = { Text("Update: Property Listing #10$i") },
-                    supportingContent = { Text("${i + 1} hours ago") },
-                    leadingContent = { Icon(Icons.Default.Info, null) }
-                )
-                HorizontalDivider()
+                composable("admin_dashboard") {
+                    AdminPanelScreen(
+                        onNavigateToDetail = onNavigateToDetail,
+                        onNavigateToUserDetail = { userId ->
+                            navController.navigate("user_detail/$userId")
+                        }
+                    )
+                }
+                composable("user_detail/{userId}") { backStackEntry ->
+                    val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                    UserDetailScreen(
+                        userId = userId,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
             }
         }
     }

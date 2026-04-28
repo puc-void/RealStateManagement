@@ -1,7 +1,7 @@
 package com.example.realstate.data
 
 enum class UserRole {
-    USER, ADMIN, SUB_ADMIN
+    USER, ADMIN, AGENT
 }
 
 data class Property(
@@ -15,9 +15,11 @@ data class Property(
     val beds: Int,
     val baths: Int,
     val area: String,
+    val isVerified: Boolean = true,
     val amenities: List<String> = emptyList(),
     val agentName: String = "John Doe",
-    val agentPicUrl: String = "https://i.pravatar.cc/150?img=12"
+    val agentPicUrl: String = "https://i.pravatar.cc/150?img=12",
+    val agentId: String = ""
 )
 
 data class Order(
@@ -34,5 +36,7 @@ data class User(
     val role: UserRole = UserRole.USER,
     val phone: String = "+1 234 567 890",
     val location: String = "New York, USA",
-    val joinDate: String = "January 2024"
+    val joinDate: String = "January 2024",
+    val status: String = "ACTIVE",
+    val id: String = "user-123"
 )

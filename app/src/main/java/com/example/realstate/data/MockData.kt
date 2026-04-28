@@ -3,13 +3,26 @@ package com.example.realstate.data
 object MockData {
 
     var currentUser = User(
-        name = "Akib Mahmud",
-        email = "akib@example.com",
+        name = "Mehedi Hasan",
+        email = "mehedi@example.com",
         profilePicUrl = "https://i.pravatar.cc/150?img=11",
-        role = UserRole.ADMIN, // Defaulting to Admin to show all features
+        role = UserRole.USER,
         phone = "+880 1712 345678",
         location = "Dhaka, Bangladesh",
-        joinDate = "January 2024"
+        joinDate = "January 2024",
+        id = "950c7e11-4af8-44b3-bd90-38ddfbefb836"
+    )
+
+    const val currentWishlistId = "0d1681c0-aba2-4393-969b-293dbb070999"
+    const val currentAgentId = "508f7879-e762-4666-869f-539c017df80a"
+
+    val users = listOf(
+        User("Abdul Hannan", "abdul.hannan@example.com", "https://i.pravatar.cc/150?img=11", UserRole.ADMIN, id = "e5592ed8-103a-407e-960b-28594e85cfff"),
+        User("Sarah Jenkins", "sarah@realstate.com", "https://i.pravatar.cc/150?img=9", UserRole.AGENT, id = currentAgentId),
+        User("Shaiful Islam", "shaifulislam@gmail.com", "https://i.pravatar.cc/150?img=3", UserRole.AGENT, id = "e09213da-bab4-4f99-9c46-324c329db9f0"),
+        User("Nusrat Jahan", "nusrat@example.com", "https://i.pravatar.cc/150?img=5", UserRole.AGENT, id = "3c1d61d6-25e7-4e03-83dc-a61d90e4e38e"),
+        User("Mehedi Hasan", "mehedi@example.com", "https://i.pravatar.cc/150?img=11", UserRole.USER, id = "950c7e11-4af8-44b3-bd90-38ddfbefb836"),
+        User("Mike Ross", "mike@realstate.com", "https://i.pravatar.cc/150?img=12", UserRole.AGENT, id = "913fc870-beba-44de-9a0d-98b3c79ddb2c"),
     )
 
     val properties = listOf(

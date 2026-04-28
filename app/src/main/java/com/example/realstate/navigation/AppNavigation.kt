@@ -1,5 +1,9 @@
 package com.example.realstate.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -10,15 +14,35 @@ import com.example.realstate.ui.screens.DetailScreen
 import com.example.realstate.ui.screens.LoginScreen
 import com.example.realstate.ui.screens.MainScreen
 
+private const val TRANSITION_DURATION = 400
+
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(
+        navController = navController,
+        startDestination = "login",
+        enterTransition = {
+            fadeIn(tween(TRANSITION_DURATION)) +
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(TRANSITION_DURATION))
+        },
+        exitTransition = {
+            fadeOut(tween(TRANSITION_DURATION)) +
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(TRANSITION_DURATION))
+        },
+        popEnterTransition = {
+            fadeIn(tween(TRANSITION_DURATION)) +
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(TRANSITION_DURATION))
+        },
+        popExitTransition = {
+            fadeOut(tween(TRANSITION_DURATION)) +
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(TRANSITION_DURATION))
+        }
+    ) {
         composable("login") {
             LoginScreen(
                 onLoginSuccess = {
-                    // Navigate to Main navigation (Home, Orders, Profile)
                     navController.navigate("main") {
                         popUpTo("login") { inclusive = true }
                     }

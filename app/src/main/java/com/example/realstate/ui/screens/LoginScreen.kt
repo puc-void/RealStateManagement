@@ -27,7 +27,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.realstate.data.MockData
+import com.example.realstate.data.UserRole
 import com.example.realstate.ui.theme.GlassDark
+import com.example.realstate.ui.components.NestoraButton
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,7 +77,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "AURA",
+                    text = "NESTORA",
                     style = MaterialTheme.typography.displayLarge,
                     color = Color.White,
                     letterSpacing = 4.sp
@@ -152,26 +155,46 @@ fun LoginScreen(onLoginSuccess: () -> Unit) {
 
                         Spacer(modifier = Modifier.height(32.dp))
 
-                        Button(
-                            onClick = onLoginSuccess,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = Color.White
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp)
-                        ) {
-                            Text("Sign In", fontSize = 16.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                        }
+                        NestoraButton(
+                            text = "Log in as User",
+                            onClick = { 
+                                MockData.currentUser = MockData.users.find { it.name == "Mehedi Hasan" } ?: MockData.currentUser
+                                onLoginSuccess() 
+                            },
+                            modifier = Modifier.fillMaxWidth().height(50.dp),
+                            colors = listOf(Color(0xFF3F51B5), Color(0xFF2196F3))
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        NestoraButton(
+                            text = "Log in as Agent",
+                            onClick = { 
+                                MockData.currentUser = MockData.users.find { it.id == MockData.currentAgentId } ?: MockData.currentUser
+                                onLoginSuccess() 
+                            },
+                            modifier = Modifier.fillMaxWidth().height(50.dp),
+                            colors = listOf(Color(0xFF009688), Color(0xFF4CAF50))
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        NestoraButton(
+                            text = "Log in as Admin",
+                            onClick = { 
+                                MockData.currentUser = MockData.users.find { it.role == UserRole.ADMIN } ?: MockData.currentUser
+                                onLoginSuccess() 
+                            },
+                            modifier = Modifier.fillMaxWidth().height(50.dp),
+                            colors = listOf(Color(0xFF9C27B0), Color(0xFFE91E63))
+                        )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(48.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "New to Aura?", color = Color.LightGray)
+                    Text(text = "New to Nestora?", color = Color.LightGray)
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "Create Account",
