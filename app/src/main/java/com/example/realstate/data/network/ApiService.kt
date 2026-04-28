@@ -12,7 +12,7 @@ interface AuthApiService {
 }
 
 interface VerificationApiService {
-    @GET("verification/verify-user/{userId}")
+    @POST("verification/verify-user/{userId}")
     suspend fun verifyEmail(
         @Path("userId") userId: String,
         @Body body: Map<String, String>

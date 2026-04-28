@@ -53,24 +53,34 @@ class AuthViewModel : ViewModel() {
                     val userId = response.data.id ?: ""
                     _state.update { AuthState.SignUpSuccess(userId, role) }
                 } else {
-                    _state.update { AuthState.Error(response.message) }
+                    // Check for common error messages like "already exists"
+                    val msg = response.message.ifBlank { "Sign up failed. This email might already be registered." }
+                    _state.update { AuthState.Error(msg) }
                 }
             } catch (e: Exception) {
-                _state.update { AuthState.Error(e.message ?: "Sign up failed. Please try again.") }
+                val errorMsg = when {
+                    e.message?.contains("409") == true -> "This email address is already registered."
+                    e.message?.contains("400") == true -> "Invalid registration data. Please check your inputs."
+                    else -> e.message ?: "Connection error. Please check your internet."
+                }
+                _state.update { AuthState.Error(errorMsg) }
             }
         }
     }
 
     fun verifyEmail(userId: String, otp: String, role: String) {
-        if (otp.length != 6) { _state.update { AuthState.Error("Enter the 6-digit OTP") }; return }
+        if (otp.length != 6) { _state.update { AuthState.Error("Enter the 6-digit OTP code") }; return }
         _state.update { AuthState.Loading }
         viewModelScope.launch {
             try {
                 val response = RetrofitClient.verificationApi.verifyEmail(userId, mapOf("otp" to otp))
-                if (response.success && response.data == true) {
+                if (response.success) {
                     _state.update { AuthState.VerifySuccess(role) }
                 } else {
-                    _state.update { AuthState.Error(response.message.ifBlank { "Invalid OTP. Please try again." }) }
+                    val msg = if (response.message.contains("expire", true)) "OTP has expired. Please try signing up again."
+                             else if (response.message.contains("invalid", true)) "Invalid OTP code. Please check your email."
+                             else response.message.ifBlank { "Verification failed. Please try again." }
+                    _state.update { AuthState.Error(msg) }
                 }
             } catch (e: Exception) {
                 _state.update { AuthState.Error(e.message ?: "Verification failed. Please try again.") }

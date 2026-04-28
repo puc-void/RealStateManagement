@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -94,7 +95,7 @@ fun OtpVerificationScreen(
                             .background(GlassDark)
                             .size(44.dp)
                     ) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
                 }
 
@@ -234,10 +235,12 @@ fun OtpVerificationScreen(
 
                         Spacer(Modifier.height(16.dp))
 
-                        TextButton(onClick = { otp = ""; errorMsg = null }) {
+                        TextButton(onClick = { 
+                            errorMsg = "If you didn't receive the code, please wait 1-2 minutes or check your Spam folder."
+                        }) {
                             Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp), tint = Color.LightGray)
                             Spacer(Modifier.width(4.dp))
-                            Text("Didn't get the email? Check spam folder", color = Color.LightGray, fontSize = 12.sp)
+                            Text("Didn't get the email? Tap to resend hint", color = Color.LightGray, fontSize = 12.sp)
                         }
                     }
                 }

@@ -66,6 +66,10 @@ fun SignUpScreen(
             }
             is AuthState.Error -> {
                 errorMsg = s.message
+                if (s.message.contains("already registered", ignoreCase = true)) {
+                    // Specific prompt for already registered emails
+                    errorMsg = "This email is already in use. Please sign in or use a different email."
+                }
             }
             else -> {}
         }
