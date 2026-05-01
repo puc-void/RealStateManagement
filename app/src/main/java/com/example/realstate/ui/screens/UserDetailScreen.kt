@@ -22,7 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.realstate.data.model.UserDto
+import com.example.realstate.data.model.*
 import com.example.realstate.data.network.RetrofitClient
 import kotlinx.coroutines.launch
 
@@ -34,8 +34,8 @@ fun UserDetailScreen(
 ) {
     val scope = rememberCoroutineScope()
     var user by remember { mutableStateOf<UserDto?>(null) }
-    var agentInfo by remember { mutableStateOf<com.example.realstate.data.model.AgentDetailDto?>(null) }
-    var agentProperties by remember { mutableStateOf<List<com.example.realstate.data.model.PropertyDto>>(emptyList()) }
+    var agentInfo by remember { mutableStateOf<AgentDetailDto?>(null) }
+    var agentProperties by remember { mutableStateOf<List<PropertyDto>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
 

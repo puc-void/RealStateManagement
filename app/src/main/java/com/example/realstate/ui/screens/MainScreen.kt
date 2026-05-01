@@ -28,23 +28,28 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.realstate.data.MockData
 import com.example.realstate.data.UserRole
+import com.example.realstate.ui.viewmodels.HomeViewModel
 import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     onLogout: () -> Unit,
-    onNavigateToDetail: (String) -> Unit
+    onNavigateToDetail: (String) -> Unit,
+    onNavigateToWishlistItemDetail: (String) -> Unit
 ) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    val homeViewModel: HomeViewModel = viewModel()
     val user = MockData.currentUser
     
     val navItems = remember(user.role) {
         when (user.role) {
             UserRole.USER -> listOf(
                 BottomNavItem("home", "Home", Icons.Default.Home),
+                BottomNavItem("wishlist", "Wishlist", Icons.Default.Favorite),
                 BottomNavItem("orders", "Orders", Icons.Default.List),
                 BottomNavItem("profile", "Profile", Icons.Default.Person)
             )
@@ -90,6 +95,17 @@ fun MainScreen(
                     icon = { Icon(Icons.Default.Home, null) }
                 )
                 NavigationDrawerItem(
+                    label = { Text("Wishlist") },
+                    selected = false,
+                    onClick = { 
+                        if (user.role == UserRole.USER) {
+                            navController.navigate("wishlist")
+                            scope.launch { drawerState.close() }
+                        }
+                    },
+                    icon = { Icon(Icons.Default.Favorite, null) }
+                )
+                NavigationDrawerItem(
                     label = { Text("Settings") },
                     selected = false,
                     onClick = { scope.launch { drawerState.close() } },
@@ -108,7 +124,6 @@ fun MainScreen(
     ) {
         Scaffold(
             topBar = {
-                // We'll hide the top bar for Agent and Admin since they have custom headers
                 if (user.role == UserRole.USER) {
                     TopAppBar(
                         title = { Text("Nestora", fontWeight = FontWeight.Bold) },
@@ -198,7 +213,15 @@ fun MainScreen(
                 popExitTransition = { fadeOut(animationSpec = tween(400)) + slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(400)) }
             ) {
                 composable("home") {
-                    HomeScreen(onPropertyClick = onNavigateToDetail)
+                    HomeScreen(
+                        onPropertyClick = onNavigateToDetail,
+                        homeViewModel = homeViewModel
+                    )
+                }
+                composable("wishlist") {
+                    WishlistScreen(
+                        onNavigateToDetail = onNavigateToWishlistItemDetail
+                    )
                 }
                 composable("orders") {
                     OrdersScreen(onPropertyClick = onNavigateToDetail)

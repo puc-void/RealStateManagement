@@ -21,7 +21,8 @@ data class AgentUiState(
     var error: String? = null,
     val activeBookingsCount: Int = 0,
     val selectedFilter: String = "All",
-    val notification: String? = null
+    val notification: String? = null,
+    val wishlistItems: List<com.example.realstate.data.model.WishlistItemDto> = emptyList()
 )
 
 class AgentViewModel : ViewModel() {
@@ -41,9 +42,11 @@ class AgentViewModel : ViewModel() {
             try {
                 val propertiesDeferred = async { RetrofitClient.propertyApi.getPropertiesByAgent(agentId) }
                 val bookedDeferred = async { RetrofitClient.bookedPropertyApi.getAllBookedProperties() }
+                val wishlistDeferred = async { RetrofitClient.wishlistApi.getAllWishlistItems() }
 
                 val response = propertiesDeferred.await()
                 val bookedResponse = bookedDeferred.await()
+                val wishlistResponse = wishlistDeferred.await()
 
                 if (response.success && response.data != null) {
                     val props = response.data.map { dto ->
@@ -74,13 +77,21 @@ class AgentViewModel : ViewModel() {
                         sold = bookings.count { it.isSold }
                     }
 
+                    var wishlistedItems = emptyList<com.example.realstate.data.model.WishlistItemDto>()
+                    if (wishlistResponse.success) {
+                        wishlistedItems = wishlistResponse.data.filter { it.agentId == agentId || it.property?.agentId == agentId }
+                    }
+
                     val newBookingsCount = bookings.size
                     val oldBookingsCount = _uiState.value.bookings.size
-                    val latestBooking = bookings.lastOrNull()
-                    val notification = if (newBookingsCount > oldBookingsCount && !_uiState.value.isLoading) {
-                        "New booking request from ${latestBooking?.user?.name ?: "a user"}!"
-                    } else {
-                        null
+                    val newWishlistCount = wishlistedItems.size
+                    val oldWishlistCount = _uiState.value.wishlistItems.size
+
+                    var notification: String? = null
+                    if (newBookingsCount > oldBookingsCount && !_uiState.value.isLoading) {
+                        notification = "New booking request from ${bookings.lastOrNull()?.user?.name ?: "a user"}!"
+                    } else if (newWishlistCount > oldWishlistCount && !_uiState.value.isLoading) {
+                        notification = "Someone added your property to their wishlist!"
                     }
 
                     _uiState.update {
@@ -90,6 +101,7 @@ class AgentViewModel : ViewModel() {
                             soldProperties = sold,
                             bookings = bookings,
                             activeBookingsCount = bookings.count { !it.isSold },
+                            wishlistItems = wishlistedItems,
                             notification = notification,
                             isLoading = false
                         )

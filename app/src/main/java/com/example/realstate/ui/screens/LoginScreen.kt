@@ -1,22 +1,25 @@
 package com.example.realstate.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -28,7 +31,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.realstate.ui.theme.GlassDark
-import com.example.realstate.ui.components.NestoraButton
 import com.example.realstate.ui.viewmodels.AuthState
 import com.example.realstate.ui.viewmodels.AuthViewModel
 import kotlinx.coroutines.delay
@@ -48,8 +50,19 @@ fun LoginScreen(
     var isVisible by remember { mutableStateOf(false) }
     var errorMsg by remember { mutableStateOf<String?>(null) }
 
+    val infiniteTransition = rememberInfiniteTransition(label = "bgAnim")
+    val bgScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(20000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+
     LaunchedEffect(Unit) {
-        delay(200)
+        delay(100)
         isVisible = true
     }
 
@@ -69,192 +82,212 @@ fun LoginScreen(
     val isLoading = authState is AuthState.Loading
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Premium background
+        // Animated background
         AsyncImage(
-            model = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
-            contentDescription = "Background",
+            model = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80",
+            contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .scale(bgScale)
         )
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f)),
+                        startY = 0f
+                    )
+                )
         )
 
-        AnimatedVisibility(
-            visible = isVisible,
-            enter = fadeIn(animationSpec = tween(800)) + slideInVertically(
-                initialOffsetY = { 100 },
-                animationSpec = tween(800)
-            )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = fadeIn(tween(1000)) + slideInVertically(initialOffsetY = { -50 })
             ) {
-                Text(
-                    text = "NESTORA",
-                    style = MaterialTheme.typography.displayLarge,
-                    color = Color.White,
-                    letterSpacing = 4.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
-                Text(
-                    text = "Exclusive Real Estate",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.LightGray,
-                    modifier = Modifier.padding(bottom = 32.dp)
-                )
-
-                // Error banner
-                AnimatedVisibility(visible = errorMsg != null) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.errorContainer,
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                errorMsg ?: "",
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.weight(1f)
-                            )
-                            IconButton(onClick = { errorMsg = null }, modifier = Modifier.size(24.dp)) {
-                                Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.size(16.dp))
-                            }
-                        }
-                    }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "NESTORA",
+                        style = MaterialTheme.typography.displayLarge.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 8.sp,
+                            color = Color.White
+                        )
+                    )
+                    Text(
+                        text = "LUXURY REAL ESTATE",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 2.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
                 }
+            }
 
-                // Glassmorphic Card
-                Box(
+            Spacer(modifier = Modifier.height(60.dp))
+
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = fadeIn(tween(1000, 300)) + slideInVertically(initialOffsetY = { 100 })
+            ) {
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(GlassDark)
-                        .padding(24.dp)
+                        .clip(RoundedCornerShape(32.dp))
+                        .background(GlassDark.copy(alpha = 0.7f)),
+                    color = Color.Transparent,
+                    shape = RoundedCornerShape(32.dp)
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         Text(
                             "Welcome Back",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 20.dp)
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White
+                            )
                         )
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                        // Email field
-                        OutlinedTextField(
+                        LoginTextField(
                             value = email,
                             onValueChange = { email = it },
-                            label = { Text("Email", color = Color.LightGray) },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                            leadingIcon = {
-                                Icon(Icons.Default.Email, contentDescription = null, tint = Color.LightGray)
-                            },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                cursorColor = MaterialTheme.colorScheme.primary
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(14.dp)
+                            label = "Email Address",
+                            icon = Icons.Default.Email
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Password field
-                        OutlinedTextField(
+                        LoginTextField(
                             value = password,
                             onValueChange = { password = it },
-                            label = { Text("Password", color = Color.LightGray) },
-                            singleLine = true,
-                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            leadingIcon = {
-                                Icon(Icons.Default.Lock, contentDescription = null, tint = Color.LightGray)
-                            },
-                            trailingIcon = {
-                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                    Icon(
-                                        if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                                        contentDescription = null,
-                                        tint = Color.LightGray
-                                    )
-                                }
-                            },
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = Color.LightGray.copy(alpha = 0.5f),
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                cursorColor = MaterialTheme.colorScheme.primary
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(14.dp)
+                            label = "Password",
+                            icon = Icons.Default.Lock,
+                            isPassword = true,
+                            passwordVisible = passwordVisible,
+                            onPasswordToggle = { passwordVisible = !passwordVisible }
                         )
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(32.dp))
 
-                        Text(
-                            text = "Forgot Password?",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.align(Alignment.End)
-                        )
-
-                        Spacer(modifier = Modifier.height(28.dp))
-
-                        // Sign In button
                         Button(
-                            onClick = {
-                                errorMsg = null
-                                authViewModel.signin(email, password)
-                            },
-                            enabled = !isLoading,
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                            shape = RoundedCornerShape(16.dp)
+                            onClick = { authViewModel.signin(email, password) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(64.dp)
+                                .shadow(12.dp, RoundedCornerShape(20.dp), spotColor = MaterialTheme.colorScheme.primary),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
+                            enabled = !isLoading
                         ) {
                             if (isLoading) {
-                                CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp, color = Color.White)
+                                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                             } else {
-                                Icon(Icons.AutoMirrored.Filled.Login, null, modifier = Modifier.size(20.dp))
-                                Spacer(Modifier.width(8.dp))
-                                Text("Sign In", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("SIGN IN", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.size(18.dp))
+                                }
                             }
                         }
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-                // Create new account link
+            Row(
+                modifier = Modifier.padding(bottom = 32.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Don't have an account? ", color = Color.White.copy(alpha = 0.7f))
+                Text(
+                    "Sign Up",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.clickable { onNavigateToSignUp() }
+                )
+            }
+        }
+
+        // Error message overlay
+        AnimatedVisibility(
+            visible = errorMsg != null,
+            enter = fadeIn() + slideInVertically(),
+            exit = fadeOut() + slideOutVertically()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(16.dp)
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "New to Nestora?  ", color = Color.LightGray, fontSize = 15.sp)
-                    Text(
-                        text = "Create new account",
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        modifier = Modifier.clickable { onNavigateToSignUp() }
-                    )
+                    Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(errorMsg ?: "", color = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.weight(1f))
+                    IconButton(onClick = { errorMsg = null }) {
+                        Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error)
+                    }
                 }
             }
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LoginTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    isPassword: Boolean = false,
+    passwordVisible: Boolean = false,
+    onPasswordToggle: (() -> Unit)? = null
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(label, color = Color.White.copy(alpha = 0.6f)) },
+        leadingIcon = { Icon(icon, null, tint = MaterialTheme.colorScheme.primary) },
+        trailingIcon = {
+            if (isPassword && onPasswordToggle != null) {
+                IconButton(onClick = onPasswordToggle) {
+                    Icon(
+                        if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        null,
+                        tint = Color.White.copy(alpha = 0.6f)
+                    )
+                }
+            }
+        },
+        visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+        keyboardOptions = KeyboardOptions(keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Email),
+        shape = RoundedCornerShape(16.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White
+        ),
+        singleLine = true
+    )
+}
+

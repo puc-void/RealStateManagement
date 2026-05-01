@@ -1,10 +1,17 @@
 package com.example.realstate.ui.screens
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,8 +27,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.realstate.data.MockData
-import com.example.realstate.ui.components.NestoraButton
 import com.example.realstate.ui.viewmodels.OrderViewModel
+import com.example.realstate.data.model.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,7 +37,7 @@ fun OrdersScreen(
     viewModel: OrderViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val userId = MockData.currentUser.id ?: "" // In real app, get from auth
+    val userId = MockData.currentUser.id ?: ""
 
     LaunchedEffect(userId) {
         if (userId.isNotEmpty()) {
@@ -38,61 +45,70 @@ fun OrdersScreen(
         }
     }
 
-    val snackbarHostState = remember { SnackbarHostState() }
-
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Text("My Activity", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.onBackground)
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            Column(modifier = Modifier.padding(24.dp)) {
+                Text("Your Activity", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                Text("Bookings & Orders", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold)
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                if (uiState.boughtProperties.isNotEmpty()) {
-                    item {
-                        Text("My Bought Properties", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    }
-                    items(uiState.boughtProperties) { soldProp ->
-                        BoughtPropertyCard(soldProp = soldProp, onClick = { onPropertyClick(soldProp.propertyId.toString()) })
-                    }
-                    item { Spacer(modifier = Modifier.height(16.dp)) }
-                }
 
-                if (uiState.bookedProperties.isNotEmpty()) {
-                    item {
-                        Text("My Bookings", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    }
-                    items(uiState.bookedProperties) { booking ->
-                        ModernOrderCard(
-                            booking = booking, 
-                            onClick = { onPropertyClick(booking.propertyId.toString()) },
-                            onConfirm = { viewModel.confirmPurchase(booking) }
-                        )
-                    }
+            if (uiState.isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 100.dp)
+                ) {
+                    if (uiState.boughtProperties.isNotEmpty()) {
+                        item {
+                            Text("Purchased Estates", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp))
+                        }
+                        itemsIndexed(uiState.boughtProperties) { index, soldProp ->
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = fadeIn(tween(600, delayMillis = index * 100)) + slideInHorizontally(initialOffsetX = { 50 })
+                            ) {
+                                BoughtPropertyCard(soldProp = soldProp, onClick = { onPropertyClick(soldProp.propertyId.toString()) })
+                            }
+                        }
+                    }
 
-                if (uiState.bookedProperties.isEmpty() && uiState.boughtProperties.isEmpty()) {
-                    item {
-                        Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("No activity yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (uiState.bookedProperties.isNotEmpty()) {
+                        item {
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Text("Active Bookings", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp))
+                        }
+                        itemsIndexed(uiState.bookedProperties) { index, booking ->
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = fadeIn(tween(600, delayMillis = index * 100)) + slideInHorizontally(initialOffsetX = { 50 })
+                            ) {
+                                ModernOrderCard(
+                                    booking = booking, 
+                                    onClick = { onPropertyClick(booking.propertyId.toString()) },
+                                    onConfirm = { viewModel.confirmPurchase(booking) }
+                                )
+                            }
+                        }
+                    }
+
+                    if (uiState.bookedProperties.isEmpty() && uiState.boughtProperties.isEmpty()) {
+                        item {
+                            Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Surface(modifier = Modifier.size(80.dp), shape = CircleShape, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(Icons.Default.Assignment, null, modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text("No history found", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
                         }
                     }
                 }
@@ -102,51 +118,50 @@ fun OrdersScreen(
 }
 
 @Composable
-fun BoughtPropertyCard(soldProp: com.example.realstate.data.model.SoldPropertyDto, onClick: () -> Unit) {
-    Card(
+fun BoughtPropertyCard(soldProp: SoldPropertyDto, onClick: () -> Unit) {
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp)
             .clickable { onClick() }
             .shadow(4.dp, RoundedCornerShape(24.dp)),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        color = MaterialTheme.colorScheme.surface
     ) {
-        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             AsyncImage(
                 model = soldProp.property?.imageUrl,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.size(80.dp).clip(RoundedCornerShape(16.dp))
+                modifier = Modifier.size(80.dp).clip(RoundedCornerShape(20.dp))
             )
             Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(soldProp.property?.title ?: "Unknown", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Text("Price Paid: ${soldProp.amount}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
-                Text("Sold At: ${soldProp.soldAt?.take(10)}", fontSize = 12.sp, color = Color.Gray)
-                Spacer(modifier = Modifier.height(4.dp))
-                Surface(color = Color(0xFF4CAF50).copy(alpha = 0.1f), shape = RoundedCornerShape(4.dp)) {
-                    Text("PURCHASED", modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp), color = Color(0xFF4CAF50), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(soldProp.property?.title ?: "Unknown", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("Price: ${soldProp.amount}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text("Sold At: ${soldProp.soldAt?.take(10)}", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+            Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
         }
     }
 }
 
 @Composable
 fun ModernOrderCard(
-    booking: com.example.realstate.data.model.BookedPropertyDto, 
+    booking: BookedPropertyDto, 
     onClick: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    val statusColor = if (booking.isPropAmountAccepted) Color(0xFF4CAF50) else Color(0xFFFFB300)
-    val statusText = if (booking.isPropAmountAccepted) "Price Accepted" else "Pending Review"
+    val statusColor = if (booking.isPropAmountAccepted) Color(0xFF10B981) else Color(0xFFF59E0B)
+    val statusText = if (booking.isPropAmountAccepted) "Accepted" else "Pending Review"
 
-    Card(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp)
             .shadow(6.dp, RoundedCornerShape(24.dp)),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        color = MaterialTheme.colorScheme.surface
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -154,38 +169,48 @@ fun ModernOrderCard(
                     model = booking.property?.imageUrl,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(80.dp).clip(RoundedCornerShape(16.dp))
+                    modifier = Modifier.size(80.dp).clip(RoundedCornerShape(20.dp))
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(booking.property?.title ?: "Unknown", fontWeight = FontWeight.Bold, fontSize = 18.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text("Offered: ${booking.proposedAmount}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Text(booking.property?.title ?: "Unknown", fontWeight = FontWeight.ExtraBold, fontSize = 17.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("Offer: ${booking.proposedAmount}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 }
             }
             
             Spacer(modifier = Modifier.height(16.dp))
-            Divider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
+            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant, thickness = 1.dp)
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column {
-                    Text(statusText, color = statusColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Text("Booked on: ${booking.bookedAt?.take(10)}", fontSize = 10.sp, color = Color.Gray)
+                    Surface(color = statusColor.copy(alpha = 0.1f), shape = RoundedCornerShape(8.dp)) {
+                        Text(
+                            statusText.uppercase(), 
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            color = statusColor, 
+                            fontWeight = FontWeight.ExtraBold, 
+                            fontSize = 10.sp
+                        )
+                    }
+                    Text("Booked on: ${booking.bookedAt?.take(10)}", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
                 }
                 
                 if (booking.isPropAmountAccepted) {
-                    NestoraButton(
-                        text = "Buy Now",
+                    Button(
                         onClick = onConfirm,
-                        colors = listOf(Color(0xFF4CAF50), Color(0xFF81C784)),
-                        textColor = Color.White
-                    )
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981))
+                    ) {
+                        Text("Confirm Purchase", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
                 } else {
                     OutlinedButton(onClick = onClick, shape = RoundedCornerShape(12.dp)) {
-                        Text("View Property")
+                        Text("Details", fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     }
                 }
             }
         }
     }
 }
+

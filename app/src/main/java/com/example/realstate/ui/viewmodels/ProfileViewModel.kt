@@ -17,22 +17,22 @@ data class ProfileUiState(
     val reviews: List<com.example.realstate.data.model.ReviewDto> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val userId: String = MockData.currentUser.id
+    val userId: String = ""
 )
 
 class ProfileViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    private val userId = MockData.currentUser.id
-    private val wishlistId = MockData.currentWishlistId
+    private val userId get() = MockData.currentUser.id
+    private val wishlistId get() = MockData.wishlistId
 
     init {
         loadProfileData()
     }
 
     fun loadProfileData() {
-        _uiState.update { it.copy(isLoading = true, error = null) }
+        _uiState.update { it.copy(isLoading = true, error = null, userId = userId) }
         viewModelScope.launch {
             try {
                 val wishlistDeferred = async { RetrofitClient.wishlistApi.getWishlistItems(wishlistId) }

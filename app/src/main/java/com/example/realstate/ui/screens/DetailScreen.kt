@@ -15,21 +15,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Bathtub
-import androidx.compose.material.icons.filled.Bed
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.OpenInNew
-import androidx.compose.material.icons.filled.SquareFoot
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -111,7 +105,7 @@ fun DetailScreen(
 
     if (uiState.isLoading) {
         Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
         return
     }
@@ -119,9 +113,9 @@ fun DetailScreen(
     if (property == null) {
         Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(uiState.error ?: "Property not found", color = MaterialTheme.colorScheme.error)
-                Spacer(modifier = Modifier.height(16.dp))
-                Button(onClick = onBackClick) {
+                Text(uiState.error ?: "Property details not available", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(onClick = onBackClick, shape = RoundedCornerShape(12.dp)) {
                     Text("Go Back")
                 }
             }
@@ -132,289 +126,352 @@ fun DetailScreen(
     Scaffold(
         bottomBar = {
             if (uiState.userRole != UserRole.AGENT) {
-                AnimatedVisibility(
-                    visible = true,
-                    enter = slideInVertically(initialOffsetY = { it }) + fadeIn()
+                Surface(
+                    color = Color.White,
+                    shadowElevation = 40.dp,
+                    shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                        shadowElevation = 24.dp,
-                        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-                        modifier = Modifier.fillMaxWidth()
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 24.dp, vertical = 24.dp)
+                            .fillMaxWidth()
+                            .navigationBarsPadding(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
+                        Column {
+                            Text("Total Price", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            Text(property.price, fontWeight = FontWeight.ExtraBold, fontSize = 28.sp, color = MaterialTheme.colorScheme.primary)
+                        }
+                        Button(
+                            onClick = { showBookingDialog = true },
                             modifier = Modifier
-                                .padding(horizontal = 24.dp, vertical = 20.dp)
-                                .fillMaxWidth()
-                                .navigationBarsPadding(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                                .width(180.dp)
+                                .height(64.dp)
+                                .shadow(12.dp, RoundedCornerShape(20.dp), spotColor = MaterialTheme.colorScheme.primary),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                         ) {
-                            Column {
-                                Text("Total Price", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
-                                Text(property.price, fontWeight = FontWeight.Bold, fontSize = 28.sp, color = MaterialTheme.colorScheme.onSurface)
-                            }
-                            NestoraButton(
-                                text = "Book Now",
-                                onClick = { showBookingDialog = true },
-                                modifier = Modifier.width(180.dp).height(55.dp),
-                                colors = listOf(Color(0xFF3F51B5), Color(0xFF2196F3))
-                            )
+                            Text("Reserve Now", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
                         }
                     }
                 }
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            // Content
+        Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
             ) {
-                // Parallax Header
+                // Parallax Header with Overlapping Image
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(400.dp)
+                        .height(450.dp)
                         .graphicsLayer {
-                            translationY = scrollState.value * 0.4f // Parallax effect
+                            translationY = scrollState.value * 0.4f
+                            alpha = 1f - (scrollState.value / 1200f).coerceIn(0f, 1f)
                         }
                 ) {
                     AsyncImage(
                         model = property.imageUrl,
                         contentDescription = property.title,
                         contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .clip(RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp))
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color.Transparent, Color.Black.copy(alpha = 0.5f))
+                                )
+                            )
                     )
                 }
 
-                // Details Section (overlaps header slightly)
-                Column(
+                // Details Content
+                Surface(
                     modifier = Modifier
-                        .offset(y = (-40).dp)
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp))
-                        .background(MaterialTheme.colorScheme.background)
-                        .padding(24.dp)
+                        .offset(y = (-50).dp)
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
+                    color = MaterialTheme.colorScheme.background
                 ) {
-                    AnimatedVisibility(
-                        visible = true,
-                        enter = fadeIn(animationSpec = tween(500)) + slideInVertically(initialOffsetY = { 30 })
+                    Column(
+                        modifier = Modifier.padding(24.dp)
                     ) {
-                        Column {
-                            Text(
-                                text = property.title,
-                                style = MaterialTheme.typography.displayMedium,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            // Tappable location chip — opens Google Maps
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
-                                modifier = Modifier.clickable {
-                                    val encodedAddress = URLEncoder.encode(property.location, "UTF-8")
-                                    val geoUri = Uri.parse("geo:0,0?q=$encodedAddress")
-                                    val mapsIntent = Intent(Intent.ACTION_VIEW, geoUri).apply {
-                                        setPackage("com.google.android.apps.maps")
-                                    }
-                                    val fallbackIntent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        Uri.parse("https://www.google.com/maps/search/?api=1&query=$encodedAddress")
-                                    )
-                                    try {
-                                        context.startActivity(mapsIntent)
-                                    } catch (e: Exception) {
-                                        context.startActivity(fallbackIntent)
-                                    }
-                                }
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        Icons.Default.LocationOn,
-                                        contentDescription = "Location",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Text(
-                                        property.location,
-                                        fontSize = 15.sp,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Icon(
-                                        Icons.Default.OpenInNew,
-                                        contentDescription = "Open in Maps",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(13.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        FeatureIcon(icon = Icons.Default.Bed, label = "${property.beds} Bed")
-                        FeatureIcon(icon = Icons.Default.Bathtub, label = "${property.baths} Bath")
-                        FeatureIcon(icon = Icons.Default.SquareFoot, label = property.area)
-                    }
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    // Agent Profile Row
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(MaterialTheme.colorScheme.surface)
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        AsyncImage(
-                            model = property.agentPicUrl,
-                            contentDescription = "Agent",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(50.dp)
-                                .clip(CircleShape)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(property.agentName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
-                            Text("Property Agent", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        IconButton(
-                            onClick = { /* TODO Contact Agent */ },
-                            modifier = Modifier
-                                .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                                .size(40.dp)
+                        // Title & Type
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.LocationOn, contentDescription = "Call", tint = MaterialTheme.colorScheme.primary) 
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    Text("Description", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onBackground)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = property.description,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 24.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    Text("Amenities", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onBackground)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        items(property.amenities) { amenity ->
-                            Chip(text = amenity)
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    PropertyLocationMap(location = property.location, title = property.title)
-
-                    Spacer(modifier = Modifier.height(32.dp))
-
-                    Text("Reviews", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onBackground)
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    if (uiState.reviews.isEmpty()) {
-                        Text("No reviews yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    } else {
-                        uiState.reviews.forEachIndexed { index, review ->
-                            AnimatedVisibility(
-                                visible = true,
-                                enter = fadeIn(animationSpec = tween(500, delayMillis = index * 50)) + slideInVertically(initialOffsetY = { 20 })
+                            Text(
+                                text = property.category.uppercase(),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.primary,
+                                letterSpacing = 2.sp
+                            )
+                            Surface(
+                                color = Color(0xFF4CAF50).copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(8.dp)
                             ) {
-                                Column {
-                                    ReviewItem(
-                                        review = review,
-                                        isCurrentUser = review.userId == uiState.userId,
-                                        onEdit = {
-                                            reviewToEdit = review
-                                            showReviewDialog = true
-                                        },
-                                        onDelete = {
-                                            detailViewModel.deleteReview(review.id)
-                                        }
-                                    )
-                                    Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    "VERIFIED",
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color(0xFF4CAF50)
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Text(
+                            text = property.title,
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable {
+                                val encodedAddress = URLEncoder.encode(property.location, "UTF-8")
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=$encodedAddress")))
+                            }
+                        ) {
+                            Icon(Icons.Default.LocationOn, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(property.location, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        }
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        // Features Grid (Premium look)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            PremiumFeature(icon = Icons.Default.Bed, value = property.beds, label = "Beds")
+                            PremiumFeature(icon = Icons.Default.Bathtub, value = property.baths, label = "Baths")
+                            PremiumFeature(icon = Icons.Default.SquareFoot, value = property.area, label = "Sqft")
+                        }
+
+                        Spacer(modifier = Modifier.height(40.dp))
+
+                        // Agent Section
+                        Text("Listing Agent", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(24.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                AsyncImage(
+                                    model = property.agentPicUrl,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(60.dp).clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(property.agentName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                    Text("Nestora Elite Agent", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                }
+                                IconButton(
+                                    onClick = { /* Call */ },
+                                    modifier = Modifier.background(MaterialTheme.colorScheme.primary, CircleShape)
+                                ) {
+                                    Icon(Icons.Default.Phone, null, tint = Color.White, modifier = Modifier.size(20.dp))
                                 }
                             }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(40.dp))
-                    
-                    if (uiState.userRole == UserRole.USER) {
-                        NestoraButton(
-                            text = "Write a Review",
-                            onClick = { 
-                                reviewToEdit = null
-                                showReviewDialog = true 
-                            },
-                            modifier = Modifier.fillMaxWidth().height(50.dp)
+                        Spacer(modifier = Modifier.height(40.dp))
+
+                        Text("Description", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = property.description,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 26.sp
                         )
+
+                        Spacer(modifier = Modifier.height(40.dp))
+
+                        Text("Location", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        PropertyLocationMap(location = property.location, title = property.title)
+
+                        Spacer(modifier = Modifier.height(40.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Client Reviews", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+                            if (uiState.userRole == UserRole.USER) {
+                                TextButton(onClick = { showReviewDialog = true }) {
+                                    Text("Add Review", fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        if (uiState.reviews.isEmpty()) {
+                            Text("Be the first to review this property", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        } else {
+                            uiState.reviews.forEach { review ->
+                                ReviewItem(
+                                    review = review,
+                                    isCurrentUser = review.userId == uiState.userId,
+                                    onEdit = { reviewToEdit = review; showReviewDialog = true },
+                                    onDelete = { detailViewModel.deleteReview(review.id) }
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(120.dp))
                     }
-                    
-                    Spacer(modifier = Modifier.height(120.dp)) // Padding for bottom bar
                 }
             }
 
-            // Custom Top Navigation overlay
+            // Top Buttons
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 48.dp),
+                    .statusBarsPadding()
+                    .padding(24.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 IconButton(
                     onClick = onBackClick,
                     modifier = Modifier
                         .size(48.dp)
-                        .clip(CircleShape)
-                        .background(GlassDark)
+                        .background(Color.White.copy(alpha = 0.9f), CircleShape)
+                        .shadow(4.dp, CircleShape)
                 ) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.Black)
                 }
 
                 IconButton(
                     onClick = { detailViewModel.toggleWishlist(property.id, property.agentId) },
                     modifier = Modifier
                         .size(48.dp)
-                        .clip(CircleShape)
-                        .background(GlassDark)
+                        .background(Color.White.copy(alpha = 0.9f), CircleShape)
+                        .shadow(4.dp, CircleShape)
                 ) {
                     Icon(
                         if (uiState.isWishlisted) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Favorite",
-                        tint = if (uiState.isWishlisted) Color(0xFFE91E63) else Color.White
+                        null,
+                        tint = if (uiState.isWishlisted) Color.Red else Color.Black
                     )
                 }
             }
         }
     }
 }
+
+@Composable
+fun PremiumFeature(icon: androidx.compose.ui.graphics.vector.ImageVector, value: String, label: String) {
+    Column(
+        modifier = Modifier
+            .width(100.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(value, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
+        Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReviewSubmissionDialog(initialRating: Int, initialDescription: String, onDismiss: () -> Unit, onSubmit: (Int, String) -> Unit) {
+    var rating by remember { mutableStateOf(initialRating) }
+    var description by remember { mutableStateOf(initialDescription) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Share Your Experience", fontWeight = FontWeight.ExtraBold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                    repeat(5) { index ->
+                        IconButton(onClick = { rating = index + 1 }) {
+                            Icon(
+                                Icons.Default.Star,
+                                null,
+                                tint = if (index < rating) Color(0xFFFFB300) else Color.LightGray
+                            )
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Your thoughts...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onSubmit(rating, description) }, shape = RoundedCornerShape(12.dp)) {
+                Text("Submit Review")
+            }
+        }
+    )
+}
+
+@Composable
+fun BookingSubmissionDialog(propertyTitle: String, onDismiss: () -> Unit, onSubmit: (String) -> Unit) {
+    var amount by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Property Booking", fontWeight = FontWeight.ExtraBold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text("You are requesting to book:", fontSize = 14.sp)
+                Text(propertyTitle, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = MaterialTheme.colorScheme.primary)
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = { amount = it },
+                    label = { Text("Your Proposed Offer ($)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onSubmit(amount) }, shape = RoundedCornerShape(12.dp)) {
+                Text("Send Offer")
+            }
+        }
+    )
+}
+
 
 @Composable
 fun FeatureIcon(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String) {

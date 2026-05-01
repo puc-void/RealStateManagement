@@ -21,7 +21,7 @@ data class DetailUiState(
     val error: String? = null,
     val successMessage: String? = null,
     val userRole: UserRole = MockData.currentUser.role,
-    val userId: String = MockData.currentUser.id
+    val userId: String = ""
 )
 
 class DetailViewModel : ViewModel() {
@@ -29,19 +29,22 @@ class DetailViewModel : ViewModel() {
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
 
     // Mock constants for now
-    private val wishlistId = MockData.currentWishlistId
+    private val wishlistId get() = MockData.wishlistId
 
     fun loadProperty(propertyId: String) {
+        val userId = MockData.currentUser.id
         _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             try {
                 val propertyDeferred = async { RetrofitClient.propertyApi.getPropertyDetails(propertyId) }
                 val reviewsDeferred = async { RetrofitClient.reviewApi.getReviewsByProperty(propertyId) }
-                val wishlistDeferred = async { RetrofitClient.wishlistApi.getWishlistItems(wishlistId) }
+                val wishlistDeferred = if (userId.isNotEmpty()) {
+                    async { RetrofitClient.wishlistApi.getWishlistItemsByUserId(userId) }
+                } else null
 
                 val propResponse = propertyDeferred.await()
                 val reviewsResponse = reviewsDeferred.await()
-                val wishlistResponse = wishlistDeferred.await()
+                val wishlistResponse = wishlistDeferred?.await()
 
                 if (propResponse.success && propResponse.data != null) {
                     val dto = propResponse.data
@@ -56,14 +59,15 @@ class DetailViewModel : ViewModel() {
                         beds = 1,
                         baths = 1,
                         area = "TBD",
-                        agentName = MockData.users.find { it.id == dto.agentId }?.name ?: "Unknown",
-                        agentPicUrl = "https://i.pravatar.cc/150",
+                        agentName = dto.agent?.user?.name ?: "Verified Agent",
+                        agentPicUrl = if (dto.agent?.user?.image?.startsWith("data:") == true) "https://i.pravatar.cc/150"
+                                      else dto.agent?.user?.image ?: "https://i.pravatar.cc/150",
                         amenities = emptyList(),
                         agentId = dto.agentId
                     )
                     
                     val reviews = if (reviewsResponse.success) reviewsResponse.data else emptyList()
-                    val isWishlisted = if (wishlistResponse.success) {
+                    val isWishlisted = if (wishlistResponse?.success == true) {
                         wishlistResponse.data.any { it.propertyId.toString() == propertyId }
                     } else false
 
@@ -72,7 +76,8 @@ class DetailViewModel : ViewModel() {
                         reviews = reviews,
                         isWishlisted = isWishlisted,
                         isLoading = false,
-                        error = null
+                        error = null,
+                        userId = userId
                     ) }
                 } else {
                     _uiState.update { it.copy(property = null, isLoading = false, error = propResponse.message ?: "Property not found") }
@@ -84,11 +89,16 @@ class DetailViewModel : ViewModel() {
     }
 
     fun toggleWishlist(propertyId: String, agentId: String) {
+        val userId = MockData.currentUser.id
         viewModelScope.launch {
+            if (userId.isEmpty()) {
+                _uiState.update { it.copy(error = "User not logged in.") }
+                return@launch
+            }
             try {
                 if (_uiState.value.isWishlisted) {
                     // Need to find the wishlist item ID to delete
-                    val wishlistResponse = RetrofitClient.wishlistApi.getWishlistItems(wishlistId)
+                    val wishlistResponse = RetrofitClient.wishlistApi.getWishlistItemsByUserId(userId)
                     if (wishlistResponse.success) {
                         val item = wishlistResponse.data.find { it.propertyId.toString() == propertyId }
                         if (item != null) {
@@ -101,11 +111,10 @@ class DetailViewModel : ViewModel() {
                     }
                 } else {
                     val body = mapOf(
-                        "wishlistId" to wishlistId,
                         "propertyId" to propertyId.toInt(),
                         "agentId" to agentId
                     )
-                    val response = RetrofitClient.wishlistApi.addWishlistItem(body)
+                    val response = RetrofitClient.wishlistApi.addWishlistItem(userId, body)
                     if (response.success) {
                         _uiState.update { it.copy(isWishlisted = true, successMessage = "Added to wishlist!") }
                         clearSuccessMessage()
@@ -116,6 +125,7 @@ class DetailViewModel : ViewModel() {
             }
         }
     }
+
 
     private fun clearSuccessMessage() {
         viewModelScope.launch {

@@ -1,7 +1,8 @@
 package com.example.realstate.navigation
 
-import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
+import com.example.realstate.RealStateApp
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
@@ -16,6 +17,7 @@ import com.example.realstate.ui.screens.LoginScreen
 import com.example.realstate.ui.screens.MainScreen
 import com.example.realstate.ui.screens.OtpVerificationScreen
 import com.example.realstate.ui.screens.SignUpScreen
+import com.example.realstate.ui.screens.WishlistItemDetailScreen
 import com.example.realstate.ui.viewmodels.AuthViewModel
 
 private const val TRANSITION_DURATION = 400
@@ -26,9 +28,16 @@ fun AppNavigation() {
     // Shared AuthViewModel scoped to the nav graph — same instance for Login & SignUp
     val authViewModel: AuthViewModel = viewModel()
 
+    val token = RealStateApp.preferenceManager.getToken()
+    val startDest = if (token != null) {
+        // Initialize session from stored ID
+        authViewModel.loadSession()
+        "main"
+    } else "login"
+
     NavHost(
         navController = navController,
-        startDestination = "login",
+        startDestination = startDest,
         enterTransition = {
             fadeIn(tween(TRANSITION_DURATION)) +
                 slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(TRANSITION_DURATION))
@@ -105,12 +114,16 @@ fun AppNavigation() {
         composable("main") {
             MainScreen(
                 onLogout = {
+                    RealStateApp.preferenceManager.clearSession()
                     navController.navigate("login") {
                         popUpTo("main") { inclusive = true }
                     }
                 },
                 onNavigateToDetail = { propertyId ->
                     navController.navigate("detail/$propertyId")
+                },
+                onNavigateToWishlistItemDetail = { itemId ->
+                    navController.navigate("wishlist_item_detail/$itemId")
                 }
             )
         }
@@ -124,6 +137,18 @@ fun AppNavigation() {
             DetailScreen(
                 propertyId = propertyId,
                 onBackClick = { navController.popBackStack() }
+            )
+        }
+
+        // ── Wishlist Item Detail ──────────────────────────────────────────────
+        composable(
+            route = "wishlist_item_detail/{itemId}",
+            arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
+            WishlistItemDetailScreen(
+                itemId = itemId,
+                onBack = { navController.popBackStack() }
             )
         }
     }

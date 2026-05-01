@@ -14,26 +14,36 @@ import kotlinx.coroutines.launch
 data class HomeUiState(
     val properties: List<Property> = emptyList(),
     val filteredProperties: List<Property> = emptyList(),
+    val wishlistedPropertyIds: Set<String> = emptySet(),
     val searchQuery: String = "",
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val wishlistId: String = ""
 )
 
 class HomeViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
+    private val wishlistId get() = MockData.wishlistId
+
     init {
-        loadProperties()
+        loadData()
     }
 
-    private fun loadProperties() {
-        _uiState.update { it.copy(isLoading = true, error = null) }
+    fun loadData() {
+        val userId = MockData.currentUser.id
+        _uiState.update { it.copy(isLoading = true, error = null, wishlistId = wishlistId) }
         viewModelScope.launch {
             try {
-                val response = RetrofitClient.propertyApi.getAllProperties()
-                if (response.success) {
-                    val props = response.data.map { dto ->
+                // Fetch properties and wishlist in parallel
+                val propResponse = RetrofitClient.propertyApi.getAllProperties()
+                val wishlistResponse = if (userId.isNotEmpty()) {
+                    RetrofitClient.wishlistApi.getWishlistItemsByUserId(userId)
+                } else null
+
+                if (propResponse.success) {
+                    val props = propResponse.data.map { dto ->
                         Property(
                             id = dto.id.toString(),
                             title = dto.title,
@@ -42,28 +52,39 @@ class HomeViewModel : ViewModel() {
                             price = dto.priceRange,
                             location = dto.location,
                             category = dto.propertyType,
-                            beds = 0, // Fallback since API model lacks specifics
+                            beds = 0,
                             baths = 0,
                             area = "TBD",
-                            agentName = MockData.users.find { u -> u.id == dto.agentId }?.name ?: "Verified Agent",
-                            agentPicUrl = "https://i.pravatar.cc/150",
+                            agentName = dto.agent?.user?.name ?: "Verified Agent",
+                            agentPicUrl = if (dto.agent?.user?.image?.startsWith("data:") == true) "https://i.pravatar.cc/150"
+                                          else dto.agent?.user?.image ?: "https://i.pravatar.cc/150",
+                            agentId = dto.agentId,
                             amenities = listOf("Dynamic")
                         )
                     }
+                    
+                    val wishlistedIds = wishlistResponse?.data?.map { it.propertyId.toString() }?.toSet() ?: emptySet()
+
                     _uiState.update { 
                         it.copy(
                             properties = props,
                             filteredProperties = props,
+                            wishlistedPropertyIds = wishlistedIds,
                             isLoading = false
                         )
                     }
                 } else {
-                    useMockDataFallback("API Error: ${response.message}")
+                    useMockDataFallback("API Error: ${propResponse.message}")
                 }
             } catch (e: Exception) {
                 useMockDataFallback(e.message)
             }
         }
+    }
+
+    private fun loadProperties() {
+        // Kept for backward compatibility if needed, but loadData is preferred
+        loadData()
     }
 
     private fun useMockDataFallback(errorMsg: String?) {
@@ -91,4 +112,50 @@ class HomeViewModel : ViewModel() {
             state.copy(searchQuery = query, filteredProperties = filtered)
         }
     }
+
+    fun toggleWishlist(property: Property) {
+        val userId = MockData.currentUser.id
+        if (userId.isEmpty()) {
+            _uiState.update { it.copy(error = "User not logged in") }
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val isCurrentlyWishlisted = _uiState.value.wishlistedPropertyIds.contains(property.id)
+                
+                if (isCurrentlyWishlisted) {
+                    val itemsRes = RetrofitClient.wishlistApi.getWishlistItemsByUserId(userId)
+                    if (itemsRes.success) {
+                        val item = itemsRes.data.find { it.propertyId.toString() == property.id }
+                        if (item != null) {
+                            val delRes = RetrofitClient.wishlistApi.deleteWishlistItem(item.id)
+                            if (delRes.success) {
+                                _uiState.update { state ->
+                                    state.copy(wishlistedPropertyIds = state.wishlistedPropertyIds - property.id)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    val body = mapOf(
+                        "propertyId" to property.id.toInt(),
+                        "agentId" to property.agentId
+                    )
+                    val addRes = RetrofitClient.wishlistApi.addWishlistItem(userId, body)
+                    if (addRes.success) {
+                        _uiState.update { state ->
+                            state.copy(wishlistedPropertyIds = state.wishlistedPropertyIds + property.id)
+                        }
+                    } else {
+                        _uiState.update { it.copy(error = "Failed to add: ${addRes.message}") }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _uiState.update { it.copy(error = "Wishlist Error: ${e.message}") }
+            }
+        }
+    }
 }
+

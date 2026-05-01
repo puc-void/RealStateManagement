@@ -3,7 +3,14 @@ package com.example.realstate.data.model
 data class BaseResponse<T>(
     val success: Boolean,
     val message: String,
-    val data: T?
+    val data: T
+)
+
+data class AuthResponse<T>(
+    val success: Boolean,
+    val message: String,
+    val token: String? = null,
+    val data: T
 )
 
 data class PropertyDto(
@@ -28,7 +35,8 @@ data class AgentDto(
     val id: String,
     val userId: String,
     val isVerified: Boolean? = null,
-    val isFraud: Boolean? = null
+    val isFraud: Boolean? = null,
+    val user: UserDto? = null
 )
 
 data class AgentDetailDto(
@@ -51,7 +59,14 @@ data class UserDto(
     val password: String? = null,
     val emailVerified: Boolean? = null,
     val generatedAt: String? = null,
-    val updatedAt: String? = null
+    val updatedAt: String? = null,
+    val wishlistId: String? = null,
+    val wishlist: WishlistDto? = null
+)
+
+data class WishlistDto(
+    val id: String,
+    val userId: String? = null
 )
 
 data class ReviewDto(

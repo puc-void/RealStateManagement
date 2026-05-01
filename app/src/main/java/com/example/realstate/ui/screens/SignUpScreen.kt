@@ -1,29 +1,30 @@
 package com.example.realstate.ui.screens
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -49,12 +50,12 @@ fun SignUpScreen(
     var address by remember { mutableStateOf("") }
     var selectedRole by remember { mutableStateOf("USER") }
     var passwordVisible by remember { mutableStateOf(false) }
-    var roleDropdownExpanded by remember { mutableStateOf(false) }
     var isVisible by remember { mutableStateOf(false) }
+    var image by remember { mutableStateOf("") }
     var errorMsg by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
-        delay(150)
+        delay(100)
         isVisible = true
     }
 
@@ -66,10 +67,6 @@ fun SignUpScreen(
             }
             is AuthState.Error -> {
                 errorMsg = s.message
-                if (s.message.contains("already registered", ignoreCase = true)) {
-                    // Specific prompt for already registered emails
-                    errorMsg = "This email is already in use. Please sign in or use a different email."
-                }
             }
             else -> {}
         }
@@ -78,254 +75,274 @@ fun SignUpScreen(
     val isLoading = authState is AuthState.Loading
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background image
         AsyncImage(
-            model = "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1000&q=80",
+            model = "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1200&q=80",
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
-        Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f)))
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color.Black.copy(alpha = 0.4f), Color.Black.copy(alpha = 0.9f))
+                    )
+                )
+        )
 
-        AnimatedVisibility(
-            visible = isVisible,
-            enter = fadeIn(tween(700)) + slideInVertically(initialOffsetY = { 80 }, animationSpec = tween(700))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp, vertical = 48.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Spacer(modifier = Modifier.height(48.dp))
+
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = fadeIn(tween(800)) + slideInVertically(initialOffsetY = { -30 })
             ) {
-                Spacer(Modifier.height(16.dp))
-
-                // Brand header
-                Text(
-                    "NESTORA",
-                    style = MaterialTheme.typography.displayMedium,
-                    color = Color.White,
-                    letterSpacing = 4.sp,
-                    fontWeight = FontWeight.ExtraBold
-                )
-                Text(
-                    "Create Your Account",
-                    color = Color.LightGray,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(bottom = 28.dp)
-                )
-
-                // Error banner
-                AnimatedVisibility(visible = errorMsg != null) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.errorContainer,
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                errorMsg ?: "",
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.weight(1f)
-                            )
-                            IconButton(onClick = { errorMsg = null }, modifier = Modifier.size(24.dp)) {
-                                Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.size(16.dp))
-                            }
-                        }
-                    }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "JOIN NESTORA",
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 6.sp,
+                            color = Color.White
+                        )
+                    )
+                    Text(
+                        "EXPERIENCE LUXURY LIVING",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 2.sp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
                 }
+            }
 
-                // Glassmorphic form card
-                Box(
+            Spacer(modifier = Modifier.height(40.dp))
+
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = fadeIn(tween(800, 200)) + slideInVertically(initialOffsetY = { 50 })
+            ) {
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(GlassDark)
-                        .padding(24.dp)
+                        .clip(RoundedCornerShape(32.dp))
+                        .background(GlassDark.copy(alpha = 0.7f)),
+                    color = Color.Transparent,
+                    shape = RoundedCornerShape(32.dp)
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-
-                        // Name
-                        AuthTextField(
-                            value = name,
-                            onValueChange = { name = it },
-                            label = "Full Name *",
-                            icon = Icons.Default.Person,
-                            keyboardType = KeyboardType.Text
-                        )
-
-                        // Email
-                        AuthTextField(
-                            value = email,
-                            onValueChange = { email = it },
-                            label = "Email Address *",
-                            icon = Icons.Default.Email,
-                            keyboardType = KeyboardType.Email
-                        )
-
-                        // Password
-                        OutlinedTextField(
-                            value = password,
-                            onValueChange = { password = it },
-                            label = { Text("Password * (min 6 chars)", color = Color.LightGray) },
-                            singleLine = true,
-                            leadingIcon = { Icon(Icons.Default.Lock, null, tint = Color.LightGray) },
-                            trailingIcon = {
-                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                    Icon(
-                                        if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                                        null,
-                                        tint = Color.LightGray
-                                    )
-                                }
-                            },
-                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            colors = authFieldColors(),
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(14.dp)
-                        )
-
-                        // Role Dropdown
-                        Column {
-                            Text("Account Type *", color = Color.LightGray, fontSize = 12.sp, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
-                            ExposedDropdownMenuBox(
-                                expanded = roleDropdownExpanded,
-                                onExpandedChange = { roleDropdownExpanded = it }
-                            ) {
-                                OutlinedTextField(
-                                    value = if (selectedRole == "USER") "🏠  User (Buyer/Renter)" else "🏢  Agent (Property Seller)",
-                                    onValueChange = {},
-                                    readOnly = true,
-                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = roleDropdownExpanded) },
-                                    colors = authFieldColors(),
-                                    modifier = Modifier.fillMaxWidth().menuAnchor(),
-                                    shape = RoundedCornerShape(14.dp)
-                                )
-                                ExposedDropdownMenu(
-                                    expanded = roleDropdownExpanded,
-                                    onDismissRequest = { roleDropdownExpanded = false }
-                                ) {
-                                    DropdownMenuItem(
-                                        text = { Text("🏠  User (Buyer/Renter)") },
-                                        onClick = { selectedRole = "USER"; roleDropdownExpanded = false }
-                                    )
-                                    DropdownMenuItem(
-                                        text = { Text("🏢  Agent (Property Seller)") },
-                                        onClick = { selectedRole = "AGENT"; roleDropdownExpanded = false }
-                                    )
-                                }
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Profile Image Placeholder
+                        Box(
+                            modifier = Modifier
+                                .size(90.dp)
+                                .align(Alignment.CenterHorizontally)
+                                .clip(CircleShape)
+                                .background(Color.White.copy(alpha = 0.1f))
+                                .clickable { image = "demo_base64" },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (image.isEmpty()) {
+                                Icon(Icons.Default.AddAPhoto, null, tint = Color.White.copy(alpha = 0.6f))
+                            } else {
+                                Icon(Icons.Default.Check, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp))
                             }
                         }
 
-                        // Divider with optional label
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.2f))
-                            Text("  Optional  ", color = Color.LightGray.copy(alpha = 0.7f), fontSize = 11.sp)
-                            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.2f))
-                        }
-
-                        // Contact Number
-                        AuthTextField(
-                            value = contactNumber,
-                            onValueChange = { contactNumber = it },
-                            label = "Contact Number",
-                            icon = Icons.Default.Phone,
-                            keyboardType = KeyboardType.Phone
+                        SignUpTextField(
+                            value = name,
+                            onValueChange = { name = it },
+                            label = "Full Name",
+                            icon = Icons.Default.Person
                         )
 
-                        // Address
-                        AuthTextField(
+                        SignUpTextField(
+                            value = email,
+                            onValueChange = { email = it },
+                            label = "Email Address",
+                            icon = Icons.Default.Email
+                        )
+
+                        SignUpTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            label = "Password",
+                            icon = Icons.Default.Lock,
+                            isPassword = true,
+                            passwordVisible = passwordVisible,
+                            onPasswordToggle = { passwordVisible = !passwordVisible }
+                        )
+
+                        // Role Selection
+                        Column {
+                            Text("I want to:", color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBy(12.dp)
+                            ) {
+                                RoleButton(
+                                    label = "Buy/Rent",
+                                    isSelected = selectedRole == "USER",
+                                    onClick = { selectedRole = "USER" },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                RoleButton(
+                                    label = "Sell/Agent",
+                                    isSelected = selectedRole == "AGENT",
+                                    onClick = { selectedRole = "AGENT" },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+
+                        SignUpTextField(
+                            value = contactNumber,
+                            onValueChange = { contactNumber = it },
+                            label = "Phone Number",
+                            icon = Icons.Default.Phone
+                        )
+
+                        SignUpTextField(
                             value = address,
                             onValueChange = { address = it },
                             label = "Address",
-                            icon = Icons.Default.Home,
-                            keyboardType = KeyboardType.Text
+                            icon = Icons.Default.LocationOn
                         )
 
-                        Spacer(Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                        // Sign Up Button
                         Button(
-                            onClick = {
-                                errorMsg = null
-                                authViewModel.signup(name, email, password, selectedRole, contactNumber, address)
-                            },
-                            enabled = !isLoading,
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            )
+                            onClick = { authViewModel.signup(name, email, password, selectedRole, contactNumber, address, image) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(64.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            enabled = !isLoading
                         ) {
                             if (isLoading) {
-                                CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp, color = Color.White)
+                                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                             } else {
-                                Icon(Icons.Default.PersonAdd, null, modifier = Modifier.size(20.dp))
-                                Spacer(Modifier.width(8.dp))
-                                Text("Create Account", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("CREATE ACCOUNT", fontWeight = FontWeight.ExtraBold)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null, modifier = Modifier.size(18.dp))
+                                }
                             }
                         }
                     }
                 }
-
-                Spacer(Modifier.height(28.dp))
-
-                // Already have account
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text("Already have an account? ", color = Color.LightGray, fontSize = 15.sp)
-                    Text(
-                        "Sign In",
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        modifier = Modifier.clickable { onNavigateToLogin() }
-                    )
-                }
-
-                Spacer(Modifier.height(32.dp))
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Already have an account? ", color = Color.White.copy(alpha = 0.7f))
+                Text(
+                    "Sign In",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.clickable { onNavigateToLogin() }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(48.dp))
+        }
+
+        // Error message overlay
+        AnimatedVisibility(
+            visible = errorMsg != null,
+            enter = fadeIn() + slideInVertically(),
+            exit = fadeOut() + slideOutVertically()
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(16.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(errorMsg ?: "", color = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.weight(1f))
+                    IconButton(onClick = { errorMsg = null }) {
+                        Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun RoleButton(
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.height(48.dp),
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.primary else Color.White.copy(alpha = 0.1f),
+        contentColor = if (isSelected) Color.White else Color.White.copy(alpha = 0.6f),
+        border = if (isSelected) null else androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(label, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AuthTextField(
+fun SignUpTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    keyboardType: KeyboardType = KeyboardType.Text
+    isPassword: Boolean = false,
+    passwordVisible: Boolean = false,
+    onPasswordToggle: (() -> Unit)? = null
 ) {
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label, color = Color.LightGray) },
-        singleLine = true,
-        leadingIcon = { Icon(icon, null, tint = Color.LightGray) },
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        colors = authFieldColors(),
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp)
+        label = { Text(label, color = Color.White.copy(alpha = 0.6f)) },
+        leadingIcon = { Icon(icon, null, tint = MaterialTheme.colorScheme.primary) },
+        trailingIcon = {
+            if (isPassword && onPasswordToggle != null) {
+                IconButton(onClick = onPasswordToggle) {
+                    Icon(
+                        if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        null,
+                        tint = Color.White.copy(alpha = 0.6f)
+                    )
+                }
+            }
+        },
+        visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+        keyboardOptions = KeyboardOptions(keyboardType = if (isPassword) KeyboardType.Password else KeyboardType.Text),
+        shape = RoundedCornerShape(16.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White
+        ),
+        singleLine = true
     )
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun authFieldColors() = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = MaterialTheme.colorScheme.primary,
-    unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
-    cursorColor = MaterialTheme.colorScheme.primary
-)

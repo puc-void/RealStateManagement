@@ -13,11 +13,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Map
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +27,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -72,17 +69,22 @@ fun HomeScreen(
         }
     }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it)
+        }
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
                     Column {
-                        Text("Current Location", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.LocationOn, contentDescription = "Location", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Beverly Hills, CA", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                        }
+                        Text("Explore luxury", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                        Text("Perfect Home", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurface)
                     }
                 },
                 actions = {
@@ -90,15 +92,17 @@ fun HomeScreen(
                         onClick = { isMapView = !isMapView },
                         modifier = Modifier
                             .padding(end = 8.dp)
-                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                            .size(44.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
                     ) {
                         Icon(
                             if (isMapView) Icons.Default.ViewList else Icons.Default.Map,
                             contentDescription = "Toggle Map",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
-                    IconButton(onClick = { /* TODO: Profile */ }) {
+                    Box(modifier = Modifier.padding(end = 16.dp)) {
                         AsyncImage(
                             model = MockData.currentUser.profilePicUrl,
                             contentDescription = "Profile Pic",
@@ -106,15 +110,14 @@ fun HomeScreen(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(CircleShape)
-                                .shadow(2.dp, CircleShape)
+                                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                     titleContentColor = MaterialTheme.colorScheme.onSurface
-                ),
-                modifier = Modifier.padding(horizontal = 8.dp)
+                )
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -125,20 +128,11 @@ fun HomeScreen(
                 .padding(padding)
         ) {
             item {
-                Text(
-                    text = "Welcome to\nNestora",
-                    style = MaterialTheme.typography.displayMedium,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-                )
-            }
-
-            item {
+                Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     OutlinedTextField(
@@ -147,49 +141,37 @@ fun HomeScreen(
                         modifier = Modifier
                             .weight(1f)
                             .height(56.dp)
-                            .shadow(4.dp, RoundedCornerShape(28.dp)),
-                        placeholder = { Text("Search city, neighborhood...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                            .shadow(8.dp, RoundedCornerShape(28.dp), spotColor = MaterialTheme.colorScheme.primary),
+                        placeholder = { Text("Search by location or name...", color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)) },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = MaterialTheme.colorScheme.primary) },
                         shape = RoundedCornerShape(28.dp),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.surface,
                             unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            focusedBorderColor = Color.Transparent,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
                             unfocusedBorderColor = Color.Transparent
                         )
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .shadow(6.dp, RoundedCornerShape(16.dp))
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Brush.linearGradient(listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)))
-                            .clickable { /* Toggle Filter Sheet */ },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.FilterList, contentDescription = "Filter", tint = Color.White)
-                    }
                 }
             }
 
             if (isMapView) {
                 item {
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     Box(modifier = Modifier.padding(horizontal = 24.dp)) {
                         MultiPinMapCard(
                             markers = markers,
-                            height = 500.dp,
-                            sectionLabel = "Property Locations",
-                            defaultZoom = 4f,
+                            height = 550.dp,
+                            sectionLabel = "Interactive Property Map",
+                            defaultZoom = 5f,
                             isLoading = uiState.isLoading
                         )
                     }
                 }
             } else {
                 item {
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -199,17 +181,14 @@ fun HomeScreen(
                     ) {
                         Text(
                             "Featured Estates",
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
                             color = MaterialTheme.colorScheme.onBackground
                         )
-                        Text(
-                            "See all",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.SemiBold,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        TextButton(onClick = { /* See All */ }) {
+                            Text("See all", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     
                     if (uiState.isLoading) {
                         LazyRow(
@@ -217,18 +196,24 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             items(3) {
-                                ShimmerBox(modifier = Modifier.width(280.dp).height(320.dp), shape = RoundedCornerShape(24.dp))
+                                ShimmerBox(modifier = Modifier.width(300.dp).height(350.dp), shape = RoundedCornerShape(32.dp))
                             }
                         }
                     } else {
-                        val featuredProps = uiState.filteredProperties.take(3)
+                        val featuredProps = uiState.filteredProperties.take(5)
                         if (featuredProps.isNotEmpty()) {
                             LazyRow(
                                 contentPadding = PaddingValues(horizontal = 24.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                horizontalArrangement = Arrangement.spacedBy(20.dp)
                             ) {
                                 items(featuredProps) { property ->
-                                    FeaturedPropertyCard(property = property, onClick = { onPropertyClick(property.id) })
+                                    val isWishlisted = uiState.wishlistedPropertyIds.contains(property.id)
+                                    FeaturedPropertyCard(
+                                        property = property, 
+                                        isWishlisted = isWishlisted,
+                                        onWishlistClick = { homeViewModel.toggleWishlist(property) },
+                                        onClick = { onPropertyClick(property.id) }
+                                    )
                                 }
                             }
                         }
@@ -237,57 +222,90 @@ fun HomeScreen(
 
                 item {
                     Spacer(modifier = Modifier.height(32.dp))
-                    Text(
-                        "Recommended for you",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(horizontal = 24.dp)
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(4.dp, 24.dp)
+                                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(2.dp))
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            "Recommended for you",
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
                 if (uiState.isLoading) {
                     items(5) {
                         ShimmerBox(
-                            modifier = Modifier.fillMaxWidth().height(110.dp).padding(horizontal = 24.dp, vertical = 8.dp),
-                            shape = RoundedCornerShape(16.dp)
+                            modifier = Modifier.fillMaxWidth().height(120.dp).padding(horizontal = 24.dp, vertical = 10.dp),
+                            shape = RoundedCornerShape(20.dp)
                         )
                     }
                 } else {
                     itemsIndexed(uiState.filteredProperties) { index, property ->
+                        val isWishlisted = uiState.wishlistedPropertyIds.contains(property.id)
+                        val infiniteTransition = rememberInfiniteTransition(label = "listAnim")
+                        val slideAnim by infiniteTransition.animateFloat(
+                            initialValue = 100f,
+                            targetValue = 0f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(1000, easing = LinearOutSlowInEasing),
+                                repeatMode = RepeatMode.Restart
+                            ),
+                            label = "slide"
+                        )
+
                         AnimatedVisibility(
                             visible = true,
-                            enter = fadeIn(animationSpec = tween(durationMillis = 500, delayMillis = index * 100)) + 
-                                    slideInVertically(initialOffsetY = { 50 }, animationSpec = tween(durationMillis = 500, delayMillis = index * 100))
+                            enter = fadeIn(animationSpec = tween(600, delayMillis = index * 80)) + 
+                                    slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(600, delayMillis = index * 80))
                         ) {
-                            PropertyListItem(property = property, onClick = { onPropertyClick(property.id) })
+                            PropertyListItem(
+                                property = property, 
+                                isWishlisted = isWishlisted,
+                                onWishlistClick = { homeViewModel.toggleWishlist(property) },
+                                onClick = { onPropertyClick(property.id) }
+                            )
                         }
                     }
                 }
             }
             
             item {
-                Spacer(modifier = Modifier.height(80.dp))
+                Spacer(modifier = Modifier.height(100.dp))
             }
         }
     }
 }
 
 @Composable
-fun FeaturedPropertyCard(property: Property, onClick: () -> Unit) {
+fun FeaturedPropertyCard(
+    property: Property, 
+    isWishlisted: Boolean,
+    onWishlistClick: () -> Unit,
+    onClick: () -> Unit
+) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (isPressed) 0.95f else 1f, label = "scaleAnim")
+    val scale by animateFloatAsState(if (isPressed) 0.94f else 1f, label = "scaleAnim", animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy))
 
     Card(
         modifier = Modifier
-            .width(280.dp)
-            .height(320.dp)
+            .width(300.dp)
+            .height(380.dp)
             .scale(scale)
-            .clickable(interactionSource = interactionSource, indication = LocalIndication.current) { onClick() }
-            .shadow(8.dp, RoundedCornerShape(24.dp))
-            .animateContentSize(),
-        shape = RoundedCornerShape(24.dp)
+            .clickable(interactionSource = interactionSource, indication = null) { onClick() }
+            .shadow(12.dp, RoundedCornerShape(32.dp), spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
+        shape = RoundedCornerShape(32.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
@@ -297,116 +315,223 @@ fun FeaturedPropertyCard(property: Property, onClick: () -> Unit) {
                 modifier = Modifier.fillMaxSize()
             )
             
-            // Gradient Overlay
+            // Premium Blur Overlay for Header
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .height(80.dp)
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f)),
-                            startY = 300f
+                            colors = listOf(Color.Black.copy(alpha = 0.4f), Color.Transparent)
                         )
                     )
             )
-            
-            Column(
+
+            // Heart Icon with smooth background
+            Surface(
                 modifier = Modifier
-                    .align(Alignment.BottomStart)
+                    .align(Alignment.TopEnd)
+                    .padding(20.dp)
+                    .size(44.dp),
+                shape = CircleShape,
+                color = Color.Black.copy(alpha = 0.3f),
+                shadowElevation = 4.dp
+            ) {
+                IconButton(onClick = onWishlistClick) {
+                    Icon(
+                        if (isWishlisted) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Wishlist",
+                        tint = if (isWishlisted) Color(0xFFFF5252) else Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+
+            // Price Tag
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(20.dp),
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primary,
+                shadowElevation = 8.dp
+            ) {
+                Text(
+                    text = property.price,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
+
+            // Bottom Info Card with Glassmorphism feel
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color.Black.copy(alpha = 0.6f))
                     .padding(16.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.8f))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(property.category, color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            property.title, 
+                            fontWeight = FontWeight.ExtraBold, 
+                            fontSize = 18.sp, 
+                            color = Color.White, 
+                            maxLines = 1, 
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Star, null, tint = Color(0xFFFFC107), modifier = Modifier.size(14.dp))
+                            Text(" 4.9", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(property.location, fontSize = 13.sp, color = Color.LightGray, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        PropertyAmenitySmall(Icons.Default.Bed, "${property.beds} Beds")
+                        PropertyAmenitySmall(Icons.Default.Bathtub, "${property.baths} Baths")
+                        PropertyAmenitySmall(Icons.Default.SquareFoot, property.area)
+                    }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(property.title, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.LightGray, modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(property.location, fontSize = 14.sp, color = Color.LightGray, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(property.price, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.tertiary, fontSize = 18.sp)
             }
         }
     }
 }
 
 @Composable
-fun PropertyListItem(property: Property, onClick: () -> Unit) {
+fun PropertyAmenitySmall(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(12.dp))
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(text, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Medium)
+    }
+}
+
+@Composable
+fun PropertyListItem(
+    property: Property, 
+    isWishlisted: Boolean,
+    onWishlistClick: () -> Unit,
+    onClick: () -> Unit
+) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(if (isPressed) 0.96f else 1f, label = "scaleAnimListItem")
+    val scale by animateFloatAsState(if (isPressed) 0.97f else 1f, label = "scaleAnimListItem")
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .padding(horizontal = 24.dp, vertical = 10.dp)
             .scale(scale)
             .clickable(interactionSource = interactionSource, indication = LocalIndication.current) { onClick() }
-            .shadow(4.dp, RoundedCornerShape(16.dp))
-            .animateContentSize(),
-        shape = RoundedCornerShape(16.dp),
+            .shadow(6.dp, RoundedCornerShape(20.dp)),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Row(modifier = Modifier.padding(12.dp)) {
-            AsyncImage(
-                model = property.imageUrl,
-                contentDescription = property.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(110.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            )
+            Box {
+                AsyncImage(
+                    model = property.imageUrl,
+                    contentDescription = property.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                )
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(8.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.9f)
+                ) {
+                    Text(
+                        property.category, 
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
             Spacer(modifier = Modifier.width(16.dp))
             Column(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).height(120.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text(property.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurface)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(property.category, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    val ctx = LocalContext.current
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable {
-                            val encoded = java.net.URLEncoder.encode(property.location, "UTF-8")
-                            val mapsIntent = android.content.Intent(
-                                android.content.Intent.ACTION_VIEW,
-                                android.net.Uri.parse("geo:0,0?q=$encoded")
-                            ).apply { setPackage("com.google.android.apps.maps") }
-                            try {
-                                ctx.startActivity(mapsIntent)
-                            } catch (e: Exception) {
-                                ctx.startActivity(android.content.Intent(
-                                    android.content.Intent.ACTION_VIEW,
-                                    android.net.Uri.parse("https://www.google.com/maps/search/?api=1&query=$encoded")
-                                ))
-                            }
-                        }
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
                     ) {
-                        Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Text(property.location, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium)
+                        Text(
+                            property.title, 
+                            fontWeight = FontWeight.Bold, 
+                            fontSize = 17.sp, 
+                            maxLines = 1, 
+                            overflow = TextOverflow.Ellipsis, 
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(
+                            onClick = onWishlistClick,
+                            modifier = Modifier.size(24.dp).offset(x = 4.dp, y = (-4).dp)
+                        ) {
+                            Icon(
+                                if (isWishlisted) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = "Wishlist",
+                                tint = if (isWishlisted) Color(0xFFFF5252) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.LocationOn, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(property.location, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+                
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Bottom
                 ) {
-                    Text(property.price, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onBackground, fontSize = 16.sp)
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp)) // Using dummy icon for bed/bath if no custom vector
-                        Text(" ${property.beds}B ${property.baths}B", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium)
+                    Text(
+                        property.price, 
+                        fontWeight = FontWeight.ExtraBold, 
+                        color = MaterialTheme.colorScheme.primary, 
+                        fontSize = 18.sp
+                    )
+                    Row(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.SquareFoot, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(12.dp))
+                        Text(" ${property.area}", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                     }
                 }
             }

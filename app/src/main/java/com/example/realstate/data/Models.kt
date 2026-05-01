@@ -38,5 +38,6 @@ data class User(
     val location: String = "New York, USA",
     val joinDate: String = "January 2024",
     val status: String = "ACTIVE",
-    val id: String = "user-123"
+    val id: String = "user-123",
+    val wishlistId: String = ""
 )

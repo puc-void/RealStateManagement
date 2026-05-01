@@ -4,74 +4,21 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import com.example.realstate.ui.components.MultiPinMapCard
-import androidx.compose.foundation.ExperimentalFoundationApi
-import com.google.android.gms.maps.model.LatLng
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.PendingActions
-import androidx.compose.material.icons.filled.RateReview
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.ShoppingBag
-import androidx.compose.material.icons.filled.SupportAgent
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -80,17 +27,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.realstate.data.model.*
+import com.example.realstate.ui.components.MultiPinMapCard
 import com.example.realstate.ui.components.ReviewItem
 import com.example.realstate.ui.viewmodels.AdminViewModel
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
-import android.location.Geocoder
+import com.google.android.gms.maps.model.LatLng
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminPanelScreen(
     onNavigateToDetail: (String) -> Unit,
@@ -98,12 +42,11 @@ fun AdminPanelScreen(
     viewModel: AdminViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    val context = LocalContext.current
     
     var showAddDialog by remember { mutableStateOf(false) }
     var propertyToEdit by remember { mutableStateOf<com.example.realstate.data.Property?>(null) }
-    var userToEdit by remember { mutableStateOf<com.example.realstate.data.model.UserDto?>(null) }
+    var userToEdit by remember { mutableStateOf<UserDto?>(null) }
 
     if (showAddDialog) {
         PropertyFormDialog(
@@ -142,272 +85,371 @@ fun AdminPanelScreen(
             FloatingActionButton(
                 onClick = { showAddDialog = true },
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = CircleShape,
+                modifier = Modifier.padding(bottom = 80.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Property")
             }
         },
-        topBar = {
-            TopAppBar(
-                title = { Text("Admin Dashboard", fontWeight = FontWeight.Bold) },
-                actions = {
-                    IconButton(onClick = { viewModel.refreshDashboard() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-        },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            if (uiState.isLoading && uiState.properties.isEmpty()) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            } else {
-                LazyColumn(
-                    state = listState,
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            item {
+                Column(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
+                        .padding(24.dp)
                 ) {
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("System Overview", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 24.dp))
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Dynamic Stats Row 1
-                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            AdminStatCard(
-                                modifier = Modifier.weight(1f),
-                                title = "Total Agents",
-                                value = uiState.totalUsers.toString(),
-                                icon = Icons.Default.Group,
-                                color = if (uiState.selectedFilter == "Agents") MaterialTheme.colorScheme.primary else Color(0xFF4CAF50),
-                                onClick = { viewModel.setFilter(if (uiState.selectedFilter == "Agents") "All" else "Agents") }
-                            )
-                            AdminStatCard(
-                                modifier = Modifier.weight(1f),
-                                title = "Revenue",
-                                value = String.format(Locale.US, "$%.1fK", uiState.totalRevenue / 1000),
-                                icon = Icons.Default.AttachMoney,
-                                color = if (uiState.selectedFilter == "Revenue") MaterialTheme.colorScheme.primary else Color(0xFF2196F3),
-                                onClick = { viewModel.setFilter(if (uiState.selectedFilter == "Revenue") "All" else "Revenue") }
-                            )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("System Overview", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                            Text("Admin Control", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
                         }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        // Dynamic Stats Row 2
-                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                            AdminStatCard(
-                                modifier = Modifier.weight(1f),
-                                title = "Active Listings",
-                                value = uiState.properties.size.toString(),
-                                icon = Icons.Default.Home,
-                                color = if (uiState.selectedFilter == "Active") MaterialTheme.colorScheme.primary else Color(0xFFFF9800),
-                                onClick = { viewModel.setFilter(if (uiState.selectedFilter == "Active") "All" else "Active") }
-                            )
-                            AdminStatCard(
-                                modifier = Modifier.weight(1f),
-                                title = "Pending Sales",
-                                value = uiState.pendingApprovals.toString(),
-                                icon = Icons.Default.PendingActions,
-                                color = if (uiState.selectedFilter == "Pending") MaterialTheme.colorScheme.primary else Color(0xFFF44336),
-                                onClick = { viewModel.setFilter(if (uiState.selectedFilter == "Pending") "All" else "Pending") }
-                            )
-                        }
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Box(modifier = Modifier.padding(horizontal = 24.dp)) {
-                            val context = LocalContext.current
-                            val geocoder = remember { android.location.Geocoder(context) }
-                            val markers = remember { mutableStateListOf<Pair<LatLng, String>>() }
-                            
-                            LaunchedEffect(uiState.properties) {
-                                markers.clear()
-                                uiState.properties.forEach { property ->
-                                    try {
-                                        @Suppress("DEPRECATION")
-                                        val addresses = geocoder.getFromLocationName(property.location, 1)
-                                        if (!addresses.isNullOrEmpty()) {
-                                            markers.add(LatLng(addresses[0].latitude, addresses[0].longitude) to property.title)
-                                        }
-                                    } catch (e: Exception) {
-                                        e.printStackTrace()
-                                    }
-                                }
-                            }
-                            MultiPinMapCard(
-                                markers = markers,
-                                height = 300.dp,
-                                sectionLabel = "Property Distribution",
-                                isLoading = uiState.isLoading && markers.isEmpty()
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Text("Property Inventory", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 24.dp))
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-
-                    if (uiState.properties.isEmpty() && !uiState.isLoading) {
-                        item {
-                            Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                                Text("No properties found", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
-                    }
-
-                    val filteredProperties = when (uiState.selectedFilter) {
-                        "Active" -> uiState.properties.filter { it.isVerified }
-                        "Pending" -> uiState.properties.filter { !it.isVerified }
-                        else -> uiState.properties
-                    }
-
-                    itemsIndexed(filteredProperties, key = { _, property -> "prop_${property.id}" }) { index, property ->
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500)),
-                            modifier = Modifier.padding(horizontal = 24.dp).animateItemPlacement()
+                        IconButton(
+                            onClick = { viewModel.refreshDashboard() },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
                         ) {
-                            PropertyManagementCard(
-                                property = property,
-                                isAdmin = true,
-                                onClick = { onNavigateToDetail(property.id) },
-                                onApprove = { viewModel.approveProperty(property.id) },
-                                onReject = { viewModel.deleteProperty(property.id) },
-                                onEdit = { propertyToEdit = property },
-                                onDelete = { viewModel.deleteProperty(property.id) }
-                            )
+                            Icon(Icons.Default.Refresh, null, tint = MaterialTheme.colorScheme.primary)
                         }
                     }
-
-                    item {
-                        Spacer(modifier = Modifier.height(32.dp))
-                        Text("User & Agent Management", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 24.dp))
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-
-                    itemsIndexed(uiState.users, key = { _, user -> "user_${user.id ?: ""}" }) { index, user ->
-                         AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500)),
-                            modifier = Modifier.padding(horizontal = 24.dp).animateItemPlacement()
-                        ) {
-                            UserManagementCard(
-                                user = user,
-                                onClick = { onNavigateToUserDetail(user.id ?: "") },
-                                onEdit = { userToEdit = user },
-                                onDelete = { viewModel.deleteUser(user.id ?: "") },
-                                onToggleStatus = { viewModel.toggleUserStatus(user.id ?: "", user.status ?: "active") }
-                            )
-                        }
-                    }
-
-                    item {
-                        Spacer(modifier = Modifier.height(32.dp))
-                        Text("Agent Management", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 24.dp))
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-
-                    // Agent Section
-                    item {
-                        SectionHeader("Agent Management", Icons.Default.SupportAgent)
-                    }
-                    if (uiState.agents.isEmpty()) {
-                        item {
-                            Text("No agents found", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 24.dp))
-                        }
-                    }
-                    itemsIndexed(uiState.agents, key = { _, agent -> "agent_${agent.id}" }) { index, agent ->
-                         AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500)),
-                            modifier = Modifier.padding(horizontal = 24.dp).animateItemPlacement()
-                        ) {
-                            AgentManagementCard(
-                                agent = agent,
-                                onClick = { onNavigateToUserDetail(agent.userId) },
-                                onVerify = { viewModel.verifyAgent(agent.id) },
-                                onMarkFraud = { viewModel.markAgentFraud(agent.id) },
-                                onDelete = { viewModel.deleteAgent(agent.id) }
-                            )
-                        }
-                    }
-
-                    // Sold Properties Section
-                    item {
-                        SectionHeader("All Sold Properties", Icons.Default.ShoppingBag)
-                    }
-                    if (uiState.soldProperties.isEmpty()) {
-                        item {
-                            Text("No properties sold yet", modifier = Modifier.padding(24.dp), color = Color.Gray, style = MaterialTheme.typography.bodyMedium)
-                        }
-                    } else {
-                        itemsIndexed(uiState.soldProperties) { index, soldProp ->
-                            AnimatedVisibility(
-                                visible = true,
-                                enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500)),
-                                modifier = Modifier.padding(horizontal = 24.dp).animateItemPlacement()
-                            ) {
-                                SoldPropertyCard(
-                                    soldProp = soldProp,
-                                    onClick = { /* Show details dialog if needed */ }
-                                )
-                            }
-                        }
-                    }
-
-                    // Reviews Section
-                    item {
-                        SectionHeader("All Reviews", Icons.Default.RateReview)
-                        if (uiState.reviews.isEmpty()) {
-                            Row(modifier = Modifier.padding(horizontal = 24.dp)) {
-                                Text("No reviews found", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            }
-                        }
-                    }
-
-                    itemsIndexed(uiState.reviews, key = { _, review -> "rev_${review.id}" }) { index, review ->
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = fadeIn(animationSpec = tween(500)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(500)),
-                            modifier = Modifier.padding(horizontal = 24.dp).animateItemPlacement()
-                        ) {
-                            ReviewItem(
-                                review = review,
-                                isCurrentUser = true, // Force true to show delete button for admin
-                                onDelete = { viewModel.deleteReview(review.id) },
-                                onEdit = { /* Admin might not need to edit, but can delete */ }
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-
-                    item { Spacer(modifier = Modifier.height(80.dp)) }
                 }
             }
 
-            
-            if (uiState.error != null) {
-                Snackbar(
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
-                    action = {
-                        TextButton(onClick = { viewModel.refreshDashboard() }) {
-                            Text("Retry", color = MaterialTheme.colorScheme.inversePrimary)
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    AdminStatCard(
+                        modifier = Modifier.weight(1f),
+                        title = "Revenue",
+                        value = String.format(Locale.US, "$%.1fK", uiState.totalRevenue / 1000),
+                        icon = Icons.Default.Payments,
+                        gradient = Brush.linearGradient(listOf(Color(0xFF10B981), Color(0xFF059669)))
+                    )
+                    AdminStatCard(
+                        modifier = Modifier.weight(1f),
+                        title = "Agents",
+                        value = uiState.agents.size.toString(),
+                        icon = Icons.Default.SupportAgent,
+                        gradient = Brush.linearGradient(listOf(Color(0xFF3B82F6), Color(0xFF2563EB)))
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    AdminStatCard(
+                        modifier = Modifier.weight(1f),
+                        title = "Properties",
+                        value = uiState.properties.size.toString(),
+                        icon = Icons.Default.HomeWork,
+                        gradient = Brush.linearGradient(listOf(Color(0xFFF59E0B), Color(0xFFD97706)))
+                    )
+                    AdminStatCard(
+                        modifier = Modifier.weight(1f),
+                        title = "Users",
+                        value = uiState.users.size.toString(),
+                        icon = Icons.Default.Group,
+                        gradient = Brush.linearGradient(listOf(Color(0xFF8B5CF6), Color(0xFF7C3AED)))
+                    )
+                }
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+
+            item {
+                Text(
+                    "Property Distribution",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Box(modifier = Modifier.padding(horizontal = 24.dp)) {
+                    val geocoder = remember { android.location.Geocoder(context) }
+                    val markers = remember { mutableStateListOf<Pair<LatLng, String>>() }
+                    
+                    LaunchedEffect(uiState.properties) {
+                        markers.clear()
+                        uiState.properties.forEach { property ->
+                            try {
+                                @Suppress("DEPRECATION")
+                                val addresses = geocoder.getFromLocationName(property.location, 1)
+                                if (!addresses.isNullOrEmpty()) {
+                                    markers.add(LatLng(addresses[0].latitude, addresses[0].longitude) to property.title)
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                         }
                     }
+                    MultiPinMapCard(
+                        markers = markers,
+                        height = 200.dp,
+                        sectionLabel = "",
+                        isLoading = uiState.isLoading && markers.isEmpty()
+                    )
+                }
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+
+            item {
+                Text(
+                    "Manage Inventory",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            itemsIndexed(uiState.properties, key = { _, prop -> "admin_prop_${prop.id}" }) { index, property ->
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn(tween(600, delayMillis = index * 50)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(600, delayMillis = index * 50))
                 ) {
-                    Text(uiState.error ?: "An error occurred")
+                    PropertyManagementCard(
+                        property = property,
+                        isAdmin = true,
+                        onClick = { onNavigateToDetail(property.id) },
+                        onApprove = { viewModel.approveProperty(property.id) },
+                        onReject = { viewModel.deleteProperty(property.id) },
+                        onEdit = { propertyToEdit = property },
+                        onDelete = { viewModel.deleteProperty(property.id) }
+                    )
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(32.dp))
+                Text(
+                    "User Management",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            itemsIndexed(uiState.users, key = { _, user -> "admin_user_${user.id}" }) { index, user ->
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn(tween(600)) + slideInVertically(initialOffsetY = { 20 })
+                ) {
+                    UserManagementCard(
+                        user = user,
+                        onClick = { onNavigateToUserDetail(user.id ?: "") },
+                        onEdit = { userToEdit = user },
+                        onDelete = { viewModel.deleteUser(user.id ?: "") },
+                        onToggleStatus = { viewModel.toggleUserStatus(user.id ?: "", user.status ?: "active") }
+                    )
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(120.dp)) }
+        }
+    }
+}
+
+@Composable
+fun AdminStatCard(modifier: Modifier = Modifier, title: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, gradient: Brush) {
+    Surface(
+        modifier = modifier
+            .height(120.dp)
+            .shadow(8.dp, RoundedCornerShape(24.dp), spotColor = Color.Black.copy(alpha = 0.1f)),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Box(modifier = Modifier.background(gradient).padding(16.dp)) {
+            Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
+                Icon(icon, null, tint = Color.White.copy(alpha = 0.7f), modifier = Modifier.size(24.dp))
+                Column {
+                    Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = Color.White)
+                    Text(title, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.8f), fontWeight = FontWeight.Bold)
                 }
             }
         }
     }
 }
+
+@Composable
+fun PropertyManagementCard(
+    property: com.example.realstate.data.Property,
+    isAdmin: Boolean = true,
+    onClick: () -> Unit,
+    onApprove: () -> Unit = {},
+    onReject: () -> Unit = {},
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .clickable { onClick() }
+            .shadow(4.dp, RoundedCornerShape(20.dp)),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = property.imageUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(70.dp).clip(RoundedCornerShape(14.dp))
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(property.title, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("${property.category} • ${property.location}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(property.price, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            }
+            Row {
+                if (isAdmin && !property.isVerified) {
+                    IconButton(onClick = onApprove) {
+                        Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF10B981))
+                    }
+                    IconButton(onClick = onReject) {
+                        Icon(Icons.Default.Cancel, null, tint = MaterialTheme.colorScheme.error)
+                    }
+                } else {
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Default.Edit, null, tint = MaterialTheme.colorScheme.primary)
+                    }
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun UserManagementCard(
+    user: UserDto, 
+    onClick: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    onToggleStatus: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp)
+            .clickable { onClick() }
+            .shadow(2.dp, RoundedCornerShape(16.dp)),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(user.name?.take(1)?.uppercase() ?: "U", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(user.name ?: "User", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                Text(user.email ?: "", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Surface(
+                color = if (user.status?.lowercase() == "active") Color(0xFF10B981).copy(alpha = 0.1f) else Color(0xFFF43F5E).copy(alpha = 0.1f),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    user.status?.uppercase() ?: "ACTIVE",
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = if (user.status?.lowercase() == "active") Color(0xFF10B981) else Color(0xFFF43F5E)
+                )
+            }
+            IconButton(onClick = onToggleStatus) {
+                Icon(if (user.status?.lowercase() == "active") Icons.Default.Block else Icons.Default.Check, null, modifier = Modifier.size(18.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun SectionHeader(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(24.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold)
+    }
+}
+
+@Composable
+fun InfoSmall(label: String, value: String) {
+    Column {
+        Text(label, fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UserEditDialog(
+    user: UserDto,
+    onDismiss: () -> Unit,
+    onConfirm: (name: String, image: String, contactNumber: String, address: String) -> Unit
+) {
+    var name by remember { mutableStateOf(user.name ?: "") }
+    var contactNumber by remember { mutableStateOf(user.contactNumber ?: "") }
+    var address by remember { mutableStateOf(user.address ?: "") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit User Profile", fontWeight = FontWeight.ExtraBold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+                OutlinedTextField(value = contactNumber, onValueChange = { contactNumber = it }, label = { Text("Contact Number") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+                OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text("Address") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onConfirm(name, user.image ?: "", contactNumber, address) }, shape = RoundedCornerShape(12.dp)) {
+                Text("Save Changes")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
 
 @Composable
 fun PropertyManagementCard(

@@ -1,5 +1,7 @@
 package com.example.realstate.data.network
 
+import com.example.realstate.RealStateApp
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -12,8 +14,21 @@ object RetrofitClient {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
+    private val authInterceptor = Interceptor { chain ->
+        val original = chain.request()
+        val token = RealStateApp.preferenceManager.getToken()
+        
+        val requestBuilder = original.newBuilder()
+        if (token != null) {
+            requestBuilder.header("Authorization", "Bearer $token")
+        }
+        
+        chain.proceed(requestBuilder.build())
+    }
+
     private val httpClient = OkHttpClient.Builder()
         .addInterceptor(loggingInterceptor)
+        .addInterceptor(authInterceptor)
         .build()
 
     val retrofit: Retrofit by lazy {

@@ -1,19 +1,10 @@
 package com.example.realstate.ui.screens
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -22,36 +13,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -60,11 +27,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.realstate.data.MockData
 import com.example.realstate.data.UserRole
-import com.example.realstate.ui.components.NestoraButton
 import com.example.realstate.ui.components.ReviewItem
 import com.example.realstate.ui.viewmodels.ProfileViewModel
 
@@ -76,12 +43,11 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var user by remember(MockData.currentUser) { mutableStateOf(MockData.currentUser) }
+    val user = MockData.currentUser
     val scrollState = rememberScrollState()
     var showEditDialog by remember { mutableStateOf(false) }
     
     var editName by remember { mutableStateOf(user.name) }
-    var editEmail by remember { mutableStateOf(user.email) }
     var editPhone by remember { mutableStateOf(user.phone) }
     var editLocation by remember { mutableStateOf(user.location) }
     
@@ -107,21 +73,20 @@ fun ProfileScreen(
     if (showEditDialog) {
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
-            title = { Text("Edit Profile") },
+            title = { Text("Update Profile", fontWeight = FontWeight.ExtraBold) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(value = editName, onValueChange = { editName = it }, label = { Text("Name") }, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = editEmail, onValueChange = { editEmail = it }, label = { Text("Email") }, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = editPhone, onValueChange = { editPhone = it }, label = { Text("Phone") }, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(value = editLocation, onValueChange = { editLocation = it }, label = { Text("Location") }, modifier = Modifier.fillMaxWidth())
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    OutlinedTextField(value = editName, onValueChange = { editName = it }, label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+                    OutlinedTextField(value = editPhone, onValueChange = { editPhone = it }, label = { Text("Phone Number") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+                    OutlinedTextField(value = editLocation, onValueChange = { editLocation = it }, label = { Text("Location") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
                 }
             },
             confirmButton = {
-                TextButton(onClick = {
+                Button(onClick = {
                     viewModel.updateProfile(editName, user.profilePicUrl, editPhone, editLocation)
                     showEditDialog = false
-                }) {
-                    Text("Save")
+                }, shape = RoundedCornerShape(12.dp)) {
+                    Text("Save Changes")
                 }
             },
             dismissButton = {
@@ -132,149 +97,122 @@ fun ProfileScreen(
         )
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(padding)
                 .verticalScroll(scrollState)
         ) {
-            // Header Profile Section
+            // Premium Header with Gradient and Glass Effect
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(280.dp)
+                    .height(320.dp)
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
+                        .height(220.dp)
                         .background(
-                            brush = Brush.verticalGradient(
+                            brush = Brush.linearGradient(
                                 colors = listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.secondary)
                             )
                         )
                 )
 
-                Card(
+                Surface(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(horizontal = 24.dp)
                         .fillMaxWidth()
-                        .shadow(12.dp, RoundedCornerShape(24.dp)),
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                        .shadow(12.dp, RoundedCornerShape(32.dp)),
+                    shape = RoundedCornerShape(32.dp),
+                    color = MaterialTheme.colorScheme.surface
                 ) {
                     Column(
-                        modifier = Modifier.padding(20.dp),
+                        modifier = Modifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(contentAlignment = Alignment.BottomEnd) {
                             AsyncImage(
                                 model = user.profilePicUrl,
-                                contentDescription = "Profile Picture",
+                                contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
-                                    .size(80.dp)
+                                    .size(100.dp)
                                     .clip(CircleShape)
                                     .background(MaterialTheme.colorScheme.surfaceVariant)
                             )
-                            IconButton(
-                                onClick = { /* TODO: Change Pic */ },
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primary)
-                                    .padding(4.dp)
+                            Surface(
+                                modifier = Modifier.size(32.dp).clickable { /* Change pic */ },
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primary,
+                                shadowElevation = 4.dp
                             ) {
-                                Icon(Icons.Default.Edit, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Default.CameraAlt, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                                }
                             }
                         }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = user.name,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            val roleColor = when(user.role) {
-                                UserRole.ADMIN -> Color(0xFFE91E63)
-                                UserRole.AGENT -> Color(0xFF2196F3)
-                                UserRole.USER -> Color(0xFF4CAF50)
-                            }
-                            Surface(
-                                color = roleColor.copy(alpha = 0.1f),
-                                shape = RoundedCornerShape(4.dp)
-                            ) {
-                                Text(
-                                    text = user.role.name,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = roleColor,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(user.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
+                        Text(user.email, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Surface(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
                             Text(
-                                text = user.email,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                user.role.name.uppercase(),
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.primary,
+                                letterSpacing = 1.sp
                             )
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // User Info Section
-            InfoCard(user, onLocationClick = { showEditDialog = true })
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Settings Sections
             Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-                Text("Account Settings", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(12.dp))
+                Text("Personal Information", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+                Spacer(modifier = Modifier.height(16.dp))
                 
-                Card(
-                    modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                Surface(
+                    modifier = Modifier.fillMaxWidth().shadow(4.dp, RoundedCornerShape(24.dp)),
+                    shape = RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.surface
                 ) {
-                    Column {
-                        ProfileOption(icon = Icons.Default.Person, title = "Edit Profile", onClick = { showEditDialog = true })
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.surfaceVariant)
-                        ProfileOption(icon = Icons.Default.Notifications, title = "Notifications")
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.surfaceVariant)
-                        ProfileOption(icon = Icons.Default.Lock, title = "Privacy & Security")
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        InfoItem(icon = Icons.Default.Phone, label = "Phone", value = user.phone)
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        InfoItem(icon = Icons.Default.LocationOn, label = "Location", value = user.location)
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        InfoItem(icon = Icons.Default.CalendarToday, label = "Member Since", value = user.joinDate)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                NestoraButton(
-                    text = "Logout",
-                    onClick = onLogout,
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    colors = listOf(Color(0xFFE91E63), Color(0xFFF44336)),
-                    textColor = Color.White
-                )
-
                 Spacer(modifier = Modifier.height(32.dp))
 
+                Text("Activity Overview", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+                Spacer(modifier = Modifier.height(16.dp))
+
                 if (uiState.wishlist.isNotEmpty()) {
-                    Text("My Wishlist", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text("Saved Properties", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(12.dp))
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         items(uiState.wishlist) { property ->
-                            WishlistCard(
+                            ProfileWishlistCard(
                                 property = property, 
-                                onClick = { onNavigateToDetail(property.id) },
-                                onRemove = { viewModel.removeFromWishlist(property.id) }
+                                onClick = { onNavigateToDetail(property.id) }
                             )
                         }
                     }
@@ -282,132 +220,80 @@ fun ProfileScreen(
                 }
 
                 if (uiState.reviews.isNotEmpty()) {
-                    Text("My Reviews", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text("My Recent Reviews", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.height(12.dp))
-                    uiState.reviews.forEach { review ->
+                    uiState.reviews.take(3).forEach { review ->
                         ReviewItem(
                             review = review,
                             isCurrentUser = review.userId == uiState.userId,
-                            onEdit = {
-                                reviewToEdit = review
-                                showReviewEditDialog = true
-                            },
-                            onDelete = {
-                                viewModel.deleteReview(review.id)
-                            }
+                            onEdit = { reviewToEdit = review; showReviewEditDialog = true },
+                            onDelete = { viewModel.deleteReview(review.id) }
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
 
-                Spacer(modifier = Modifier.height(100.dp))
-            }
-        }
-    }
-}
+                Spacer(modifier = Modifier.height(32.dp))
 
-@Composable
-fun WishlistCard(property: com.example.realstate.data.Property, onClick: () -> Unit, onRemove: () -> Unit) {
-    val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by androidx.compose.animation.core.animateFloatAsState(if (isPressed) 0.95f else 1f, label = "scale")
-
-    Card(
-        modifier = Modifier
-            .width(200.dp)
-            .scale(scale)
-            .clickable(interactionSource = interactionSource, indication = androidx.compose.foundation.LocalIndication.current) { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column {
-            Box(contentAlignment = Alignment.TopEnd) {
-                AsyncImage(
-                    model = property.imageUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                )
-                IconButton(
-                    onClick = onRemove,
-                    modifier = Modifier
-                        .padding(8.dp)
-                        .size(32.dp)
-                        .background(Color.White.copy(alpha = 0.8f), CircleShape)
+                Button(
+                    onClick = onLogout,
+                    modifier = Modifier.fillMaxWidth().height(60.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f), contentColor = MaterialTheme.colorScheme.error)
                 ) {
-                    Icon(
-                        Icons.Default.Favorite,
-                        contentDescription = "Remove from Wishlist",
-                        tint = Color(0xFFE91E63),
-                        modifier = Modifier.size(18.dp)
-                    )
+                    Icon(Icons.Default.Logout, null, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Logout from Account", fontWeight = FontWeight.ExtraBold)
                 }
-            }
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(property.title, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(property.price, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+
+                Spacer(modifier = Modifier.height(120.dp))
             }
         }
     }
 }
 
 @Composable
-fun InfoCard(user: com.example.realstate.data.User, onLocationClick: () -> Unit) {
-    Card(
-        modifier = Modifier.padding(horizontal = 24.dp).fillMaxWidth().shadow(2.dp, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            InfoRow(icon = Icons.Default.Phone, label = "Phone", value = user.phone)
-            Spacer(modifier = Modifier.height(12.dp))
-            InfoRow(
-                icon = Icons.Default.LocationOn, 
-                label = "Location", 
-                value = user.location,
-                isClickable = true,
-                onClick = onLocationClick
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            InfoRow(icon = Icons.Default.DateRange, label = "Joined", value = user.joinDate)
+fun InfoItem(icon: ImageVector, label: String, value: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Surface(
+            modifier = Modifier.size(40.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+            }
         }
-    }
-}
-
-@Composable
-fun InfoRow(icon: ImageVector, label: String, value: String, isClickable: Boolean = false, onClick: () -> Unit = {}) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().then(if (isClickable) Modifier.clickable { onClick() } else Modifier)
-    ) {
-        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
         Spacer(modifier = Modifier.width(16.dp))
         Column {
-            Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
-        }
-        if (isClickable) {
-            Spacer(modifier = Modifier.weight(1f))
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
+            Text(value, fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
         }
     }
 }
 
 @Composable
-fun ProfileOption(icon: ImageVector, title: String, onClick: () -> Unit = {}) {
-    Row(
+fun ProfileWishlistCard(property: com.example.realstate.data.Property, onClick: () -> Unit) {
+    Surface(
         modifier = Modifier
-            .fillMaxWidth()
+            .width(160.dp)
             .clickable { onClick() }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .shadow(4.dp, RoundedCornerShape(20.dp)),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surface
     ) {
-        Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(22.dp))
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+        Column {
+            AsyncImage(
+                model = property.imageUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxWidth().height(100.dp)
+            )
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(property.title, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, fontSize = 14.sp)
+                Text(property.price, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp)
+            }
+        }
     }
 }
+

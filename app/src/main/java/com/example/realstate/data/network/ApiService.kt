@@ -5,10 +5,13 @@ import retrofit2.http.*
 
 interface AuthApiService {
     @POST("auth/signup")
-    suspend fun signup(@Body body: Map<String, @JvmSuppressWildcards Any>): BaseResponse<UserDto>
+    suspend fun signup(@Body body: Map<String, @JvmSuppressWildcards Any>): AuthResponse<UserDto>
 
     @POST("auth/signin")
-    suspend fun signin(@Body body: Map<String, String>): BaseResponse<UserDto>
+    suspend fun signin(@Body body: Map<String, String>): AuthResponse<UserDto>
+
+    @GET("auth/me")
+    suspend fun getMe(): BaseResponse<UserDto>
 }
 
 interface VerificationApiService {
@@ -69,11 +72,17 @@ interface WishlistApiService {
     @GET("wishlist-item/{id}")
     suspend fun getWishlistItemDetails(@Path("id") id: String): BaseResponse<WishlistItemDto>
 
+    @GET("wishlist-item/user/{userId}")
+    suspend fun getWishlistItemsByUserId(@Path("userId") userId: String): BaseResponse<List<WishlistItemDto>>
+
     @GET("wishlist-item/wishlist/{wishlistId}")
     suspend fun getWishlistItems(@Path("wishlistId") wishlistId: String): BaseResponse<List<WishlistItemDto>>
     
-    @POST("wishlist-item")
-    suspend fun addWishlistItem(@Body item: Map<String, @JvmSuppressWildcards Any>): BaseResponse<WishlistItemDto>
+    @POST("wishlist-item/{userId}")
+    suspend fun addWishlistItem(
+        @Path("userId") userId: String,
+        @Body item: Map<String, @JvmSuppressWildcards Any>
+    ): BaseResponse<WishlistItemDto>
     
     @DELETE("wishlist-item/{id}")
     suspend fun deleteWishlistItem(@Path("id") id: String): BaseResponse<WishlistItemDto>
