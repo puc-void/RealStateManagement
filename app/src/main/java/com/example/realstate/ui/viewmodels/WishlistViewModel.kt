@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.realstate.data.MockData
 import com.example.realstate.data.model.WishlistItemDto
 import com.example.realstate.data.network.RetrofitClient
+import com.example.realstate.data.repository.WishlistRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,47 +23,38 @@ class WishlistViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(WishlistUiState())
     val uiState: StateFlow<WishlistUiState> = _uiState.asStateFlow()
 
-    private val userId get() = MockData.currentUser.id
-
     init {
+        observeRepository()
         loadWishlist()
     }
 
-    fun loadWishlist() {
-        if (userId.isEmpty()) {
-            _uiState.update { it.copy(error = "User not logged in") }
-            return
-        }
-
-        _uiState.update { it.copy(isLoading = true, error = null) }
+    private fun observeRepository() {
         viewModelScope.launch {
-            try {
-                val response = RetrofitClient.wishlistApi.getWishlistItemsByUserId(userId)
-                if (response.success) {
-                    _uiState.update { it.copy(wishlistItems = response.data, isLoading = false) }
-                } else {
-                    _uiState.update { it.copy(error = response.message, isLoading = false) }
-                }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message, isLoading = false) }
+            WishlistRepository.wishlistItems.collect { items ->
+                _uiState.update { it.copy(wishlistItems = items) }
             }
+        }
+        viewModelScope.launch {
+            WishlistRepository.isLoading.collect { loading ->
+                _uiState.update { it.copy(isLoading = loading) }
+            }
+        }
+        viewModelScope.launch {
+            WishlistRepository.error.collect { err ->
+                _uiState.update { it.copy(error = err) }
+            }
+        }
+    }
+
+    fun loadWishlist() {
+        viewModelScope.launch {
+            WishlistRepository.loadWishlist()
         }
     }
 
     fun deleteWishlistItem(itemId: String) {
         viewModelScope.launch {
-            try {
-                val response = RetrofitClient.wishlistApi.deleteWishlistItem(itemId)
-                if (response.success) {
-                    _uiState.update { state ->
-                        state.copy(wishlistItems = state.wishlistItems.filter { it.id != itemId })
-                    }
-                } else {
-                    _uiState.update { it.copy(error = response.message) }
-                }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(error = e.message) }
-            }
+            WishlistRepository.deleteItem(itemId)
         }
     }
 
@@ -83,6 +75,7 @@ class WishlistViewModel : ViewModel() {
     }
     
     fun clearError() {
-        _uiState.update { it.copy(error = null) }
+        WishlistRepository.clearError()
     }
 }
+

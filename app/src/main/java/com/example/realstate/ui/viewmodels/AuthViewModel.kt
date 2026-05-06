@@ -56,7 +56,11 @@ class AuthViewModel : ViewModel() {
                         wishlistId  = wId
                     )
 
+                    // Load wishlist items into repository
+                    com.example.realstate.data.repository.WishlistRepository.loadWishlist()
+
                     if (roleEnum == UserRole.AGENT) {
+
                         try {
                             val agentsRes = RetrofitClient.agentApi.getAllAgents()
                             if (agentsRes.success) {
@@ -128,6 +132,9 @@ class AuthViewModel : ViewModel() {
                     )
                     
                     _state.update { AuthState.SignUpSuccess(userId, role) }
+                    
+                    // Load wishlist into repo
+                    com.example.realstate.data.repository.WishlistRepository.loadWishlist()
                 } else {
                     val msg = response.message.ifBlank { "Sign up failed. This email might already be registered." }
                     _state.update { AuthState.Error(msg) }
@@ -218,6 +225,9 @@ class AuthViewModel : ViewModel() {
                     }
 
                     _state.update { AuthState.SignInSuccess(roleEnum) }
+
+                    // Load wishlist into repo
+                    com.example.realstate.data.repository.WishlistRepository.loadWishlist()
                 } else {
                     _state.update { AuthState.Error(response.message) }
                 }

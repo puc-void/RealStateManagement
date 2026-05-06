@@ -1,5 +1,6 @@
 package com.example.realstate.ui.screens
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -7,15 +8,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -33,129 +34,202 @@ fun WishlistItemDetailScreen(
     wishlistViewModel: WishlistViewModel = viewModel()
 ) {
     val uiState by wishlistViewModel.uiState.collectAsState()
+    val scrollState = rememberScrollState()
     
     LaunchedEffect(itemId) {
         wishlistViewModel.getWishlistItemDetails(itemId)
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Wishlist Item Details") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else if (uiState.selectedItem != null) {
             val item = uiState.selectedItem!!
             val property = item.property
             val agent = item.agent
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                if (property != null) {
-                    AsyncImage(
-                        model = property.imageUrl,
-                        contentDescription = property.title,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(250.dp),
-                        contentScale = ContentScale.Crop
-                    )
-                    
-                    Column(modifier = Modifier.padding(24.dp)) {
-                        Text(
-                            text = property.title,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(property.location, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                ) {
+                    if (property != null) {
+                        // Image Header with Parallax-ish feel
+                        Box(modifier = Modifier.fillMaxWidth().height(350.dp)) {
+                            AsyncImage(
+                                model = property.imageUrl,
+                                contentDescription = property.title,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f))
+                                        )
+                                    )
+                            )
                         }
-                        
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = property.priceRange,
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                        
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Text("Property Type: ${property.propertyType}", fontWeight = FontWeight.SemiBold)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(property.description)
-                        
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Divider()
-                        Spacer(modifier = Modifier.height(24.dp))
-                        
-                        Text("Wishlist Information", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Added on: ${item.addedAt?.take(16)?.replace("T", " ") ?: "N/A"}")
-                        
-                        if (agent != null) {
-                            Spacer(modifier = Modifier.height(24.dp))
-                            Text("Agent Information", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = if (agent.isFraud == true) MaterialTheme.colorScheme.errorContainer 
-                                                     else MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            ) {
+
+                        // Content Surface
+                        Surface(
+                            modifier = Modifier
+                                .offset(y = (-40).dp)
+                                .fillMaxWidth(),
+                            shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
+                            color = MaterialTheme.colorScheme.background
+                        ) {
+                            Column(modifier = Modifier.padding(24.dp)) {
                                 Row(
-                                    modifier = Modifier.padding(16.dp),
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        if (agent.isFraud == true) Icons.Default.Warning else Icons.Default.Info,
-                                        contentDescription = null,
-                                        tint = if (agent.isFraud == true) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                    Text(
+                                        text = property.propertyType.uppercase(),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        letterSpacing = 1.sp
                                     )
-                                    Spacer(modifier = Modifier.width(16.dp))
-                                    Column {
-                                        Text("Agent ID: ${agent.id.take(8)}...", fontWeight = FontWeight.Bold)
-                                        if (agent.isFraud == true) {
-                                            Text("WARNING: This agent is marked as fraudulent!", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
-                                        } else {
-                                            Text("Status: Verified Agent")
+                                    Surface(
+                                        color = Color(0xFF4CAF50).copy(alpha = 0.1f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Text(
+                                            "WISHLISTED",
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = Color(0xFF4CAF50)
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(12.dp))
+                                
+                                Text(
+                                    text = property.title,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+                                
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.LocationOn,
+                                        null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        property.location,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(24.dp))
+
+                                Text(
+                                    text = property.priceRange,
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+
+                                Spacer(modifier = Modifier.height(32.dp))
+                                
+                                Text("Description", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    property.description,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    lineHeight = 24.sp
+                                )
+
+                                Spacer(modifier = Modifier.height(32.dp))
+                                
+                                // Agent Info
+                                if (agent != null) {
+                                    Text("Listing Agent", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Surface(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(24.dp),
+                                        color = if (agent.isFraud == true) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f)
+                                               else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Surface(
+                                                modifier = Modifier.size(50.dp),
+                                                shape = CircleShape,
+                                                color = if (agent.isFraud == true) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                            ) {
+                                                Box(contentAlignment = Alignment.Center) {
+                                                    Icon(
+                                                        if (agent.isFraud == true) Icons.Default.Warning else Icons.Default.Person,
+                                                        null,
+                                                        tint = Color.White
+                                                    )
+                                                }
+                                            }
+                                            Spacer(modifier = Modifier.width(16.dp))
+                                            Column {
+                                                Text("Agent ID: ${agent.id.take(8)}", fontWeight = FontWeight.Bold)
+                                                Text(
+                                                    if (agent.isFraud == true) "Marked as Suspicious" else "Verified Real Estate Agent",
+                                                    fontSize = 12.sp,
+                                                    color = if (agent.isFraud == true) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
                                         }
                                     }
                                 }
+
+                                Spacer(modifier = Modifier.height(100.dp))
                             }
                         }
-                        
-                        Spacer(modifier = Modifier.height(32.dp))
-                        Button(
-                            onClick = { /* Could navigate to full property detail */ },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("View Full Property Details")
-                        }
+                    }
+                }
+
+                // Top Bar overlay
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier
+                            .background(Color.White.copy(alpha = 0.9f), CircleShape)
+                            .shadow(4.dp, CircleShape)
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.Black)
                     }
                 }
             }
         } else {
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text(uiState.error ?: "Failed to load details")
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(uiState.error ?: "Item details not found", color = MaterialTheme.colorScheme.error)
             }
         }
     }
 }
+

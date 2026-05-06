@@ -188,7 +188,7 @@ fun SignUpScreen(
                             Text("I want to:", color = Color.White.copy(alpha = 0.6f), fontSize = 12.sp, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBy(12.dp)
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 RoleButton(
                                     label = "Buy/Rent",

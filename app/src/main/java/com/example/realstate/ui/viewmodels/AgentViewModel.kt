@@ -40,6 +40,16 @@ class AgentViewModel : ViewModel() {
         _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             try {
+                if (agentId.isBlank()) {
+                    val agentsRes = RetrofitClient.agentApi.getAllAgents()
+                    if (agentsRes.success) {
+                        val myAgent = agentsRes.data.find { it.userId == MockData.currentUser.id }
+                        if (myAgent != null) {
+                            MockData.currentAgentId = myAgent.id
+                        }
+                    }
+                }
+                
                 val propertiesDeferred = async { RetrofitClient.propertyApi.getPropertiesByAgent(agentId) }
                 val bookedDeferred = async { RetrofitClient.bookedPropertyApi.getAllBookedProperties() }
                 val wishlistDeferred = async { RetrofitClient.wishlistApi.getAllWishlistItems() }

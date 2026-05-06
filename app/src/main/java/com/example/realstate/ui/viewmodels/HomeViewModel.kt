@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.realstate.data.MockData
 import com.example.realstate.data.Property
 import com.example.realstate.data.network.RetrofitClient
+import com.example.realstate.data.repository.WishlistRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,23 +26,28 @@ class HomeViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    private val wishlistId get() = MockData.wishlistId
-
     init {
         loadData()
+        observeWishlist()
+    }
+
+    private fun observeWishlist() {
+        viewModelScope.launch {
+            WishlistRepository.wishlistItems.collect { items ->
+                val ids = items.map { it.propertyId.toString() }.toSet()
+                _uiState.update { it.copy(wishlistedPropertyIds = ids) }
+            }
+        }
     }
 
     fun loadData() {
-        val userId = MockData.currentUser.id
-        _uiState.update { it.copy(isLoading = true, error = null, wishlistId = wishlistId) }
+        _uiState.update { it.copy(isLoading = true, error = null) }
         viewModelScope.launch {
             try {
-                // Fetch properties and wishlist in parallel
+                // Initial wishlist load
+                WishlistRepository.loadWishlist()
+                
                 val propResponse = RetrofitClient.propertyApi.getAllProperties()
-                val wishlistResponse = if (userId.isNotEmpty()) {
-                    RetrofitClient.wishlistApi.getWishlistItemsByUserId(userId)
-                } else null
-
                 if (propResponse.success) {
                     val props = propResponse.data.map { dto ->
                         Property(
@@ -63,13 +69,10 @@ class HomeViewModel : ViewModel() {
                         )
                     }
                     
-                    val wishlistedIds = wishlistResponse?.data?.map { it.propertyId.toString() }?.toSet() ?: emptySet()
-
                     _uiState.update { 
                         it.copy(
                             properties = props,
-                            filteredProperties = props,
-                            wishlistedPropertyIds = wishlistedIds,
+                            filteredProperties = applyFilter(props, it.searchQuery),
                             isLoading = false
                         )
                     }
@@ -82,80 +85,43 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    private fun loadProperties() {
-        // Kept for backward compatibility if needed, but loadData is preferred
-        loadData()
-    }
-
     private fun useMockDataFallback(errorMsg: String?) {
         val allProps = MockData.properties
         _uiState.update { 
             it.copy(
                 properties = allProps,
-                filteredProperties = allProps,
+                filteredProperties = applyFilter(allProps, it.searchQuery),
                 isLoading = false,
                 error = "Offline mode ($errorMsg)"
             )
         }
     }
 
+    private fun applyFilter(props: List<Property>, query: String): List<Property> {
+        if (query.isBlank()) return props
+        return props.filter { 
+            it.title.contains(query, ignoreCase = true) || 
+            it.location.contains(query, ignoreCase = true) 
+        }
+    }
+
     fun onSearchQueryChange(query: String) {
         _uiState.update { state ->
-            val filtered = if (query.isBlank()) {
-                state.properties
-            } else {
-                state.properties.filter { 
-                    it.title.contains(query, ignoreCase = true) || 
-                    it.location.contains(query, ignoreCase = true) 
-                }
-            }
-            state.copy(searchQuery = query, filteredProperties = filtered)
+            state.copy(
+                searchQuery = query, 
+                filteredProperties = applyFilter(state.properties, query)
+            )
         }
     }
 
     fun toggleWishlist(property: Property) {
-        val userId = MockData.currentUser.id
-        if (userId.isEmpty()) {
-            _uiState.update { it.copy(error = "User not logged in") }
-            return
-        }
-
         viewModelScope.launch {
-            try {
-                val isCurrentlyWishlisted = _uiState.value.wishlistedPropertyIds.contains(property.id)
-                
-                if (isCurrentlyWishlisted) {
-                    val itemsRes = RetrofitClient.wishlistApi.getWishlistItemsByUserId(userId)
-                    if (itemsRes.success) {
-                        val item = itemsRes.data.find { it.propertyId.toString() == property.id }
-                        if (item != null) {
-                            val delRes = RetrofitClient.wishlistApi.deleteWishlistItem(item.id)
-                            if (delRes.success) {
-                                _uiState.update { state ->
-                                    state.copy(wishlistedPropertyIds = state.wishlistedPropertyIds - property.id)
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    val body = mapOf(
-                        "propertyId" to property.id.toInt(),
-                        "agentId" to property.agentId
-                    )
-                    val addRes = RetrofitClient.wishlistApi.addWishlistItem(userId, body)
-                    if (addRes.success) {
-                        _uiState.update { state ->
-                            state.copy(wishlistedPropertyIds = state.wishlistedPropertyIds + property.id)
-                        }
-                    } else {
-                        _uiState.update { it.copy(error = "Failed to add: ${addRes.message}") }
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _uiState.update { it.copy(error = "Wishlist Error: ${e.message}") }
+            val success = WishlistRepository.toggleWishlist(property.id, property.agentId)
+            if (!success) {
+                _uiState.update { it.copy(error = "Action failed. Check connection.") }
             }
         }
     }
 }
+
 

@@ -30,6 +30,14 @@ fun AppNavigation() {
 
     val token = RealStateApp.preferenceManager.getToken()
     val startDest = if (token != null) {
+        val savedRole = RealStateApp.preferenceManager.getUserRole() ?: "USER"
+        val savedUserId = RealStateApp.preferenceManager.getUserId() ?: ""
+        val roleEnum = when (savedRole.uppercase()) {
+            "ADMIN" -> com.example.realstate.data.UserRole.ADMIN
+            "AGENT" -> com.example.realstate.data.UserRole.AGENT
+            else -> com.example.realstate.data.UserRole.USER
+        }
+        com.example.realstate.data.MockData.currentUser = com.example.realstate.data.MockData.currentUser.copy(role = roleEnum, id = savedUserId)
         // Initialize session from stored ID
         authViewModel.loadSession()
         "main"

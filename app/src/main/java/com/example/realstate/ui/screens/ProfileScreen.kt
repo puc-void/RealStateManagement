@@ -54,6 +54,124 @@ fun ProfileScreen(
     var showReviewEditDialog by remember { mutableStateOf(false) }
     var reviewToEdit by remember { mutableStateOf<com.example.realstate.data.model.ReviewDto?>(null) }
 
+    var showChangeEmailDialog by remember { mutableStateOf(false) }
+    var newEmailInput by remember { mutableStateOf("") }
+    var showOtpDialog by remember { mutableStateOf(false) }
+    var otpInput by remember { mutableStateOf("") }
+    
+    var showUpdatePasswordDialog by remember { mutableStateOf(false) }
+    var currentPasswordInput by remember { mutableStateOf("") }
+    var newPasswordInput by remember { mutableStateOf("") }
+
+    LaunchedEffect(uiState.isOtpSent) {
+        if (uiState.isOtpSent) {
+            showChangeEmailDialog = false
+            showOtpDialog = true
+        }
+    }
+
+    if (uiState.error != null || uiState.successMessage != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.clearMessages() },
+            title = { Text(if (uiState.error != null) "Error" else "Success", fontWeight = FontWeight.Bold) },
+            text = { Text(uiState.error ?: uiState.successMessage ?: "") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.clearMessages() }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    if (showChangeEmailDialog) {
+        AlertDialog(
+            onDismissRequest = { showChangeEmailDialog = false },
+            title = { Text("Change Email", fontWeight = FontWeight.ExtraBold) },
+            text = {
+                OutlinedTextField(
+                    value = newEmailInput,
+                    onValueChange = { newEmailInput = it },
+                    label = { Text("New Email") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            },
+            confirmButton = {
+                Button(onClick = { viewModel.changeEmail(newEmailInput) }) {
+                    Text("Submit")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showChangeEmailDialog = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (showOtpDialog) {
+        AlertDialog(
+            onDismissRequest = { showOtpDialog = false },
+            title = { Text("Verify New Email", fontWeight = FontWeight.ExtraBold) },
+            text = {
+                OutlinedTextField(
+                    value = otpInput,
+                    onValueChange = { otpInput = it },
+                    label = { Text("6-digit OTP") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            },
+            confirmButton = {
+                Button(onClick = { 
+                    viewModel.verifyNewEmail(otpInput) 
+                    showOtpDialog = false
+                }) {
+                    Text("Verify")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showOtpDialog = false }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (showUpdatePasswordDialog) {
+        AlertDialog(
+            onDismissRequest = { showUpdatePasswordDialog = false },
+            title = { Text("Update Password", fontWeight = FontWeight.ExtraBold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    OutlinedTextField(
+                        value = currentPasswordInput,
+                        onValueChange = { currentPasswordInput = it },
+                        label = { Text("Current Password") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation()
+                    )
+                    OutlinedTextField(
+                        value = newPasswordInput,
+                        onValueChange = { newPasswordInput = it },
+                        label = { Text("New Password") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = { 
+                    viewModel.updatePassword(currentPasswordInput, newPasswordInput)
+                    showUpdatePasswordDialog = false
+                }) {
+                    Text("Update")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUpdatePasswordDialog = false }) { Text("Cancel") }
+            }
+        )
+    }
+
     if (showReviewEditDialog && reviewToEdit != null) {
         ReviewSubmissionDialog(
             initialRating = reviewToEdit!!.rating,
@@ -62,7 +180,7 @@ fun ProfileScreen(
                 showReviewEditDialog = false
                 reviewToEdit = null
             },
-            onSubmit = { rating, description ->
+            onSubmit = { rating: Int, description: String ->
                 viewModel.updateReview(reviewToEdit!!.id, rating, description)
                 showReviewEditDialog = false
                 reviewToEdit = null
@@ -159,7 +277,17 @@ fun ProfileScreen(
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(user.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
-                        Text(user.email, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(user.email, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                "Change email", 
+                                style = MaterialTheme.typography.labelSmall, 
+                                color = MaterialTheme.colorScheme.primary, 
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clickable { showChangeEmailDialog = true }
+                            )
+                        }
                         
                         Spacer(modifier = Modifier.height(16.dp))
                         
@@ -197,6 +325,12 @@ fun ProfileScreen(
                         InfoItem(icon = Icons.Default.LocationOn, label = "Location", value = user.location)
                         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                         InfoItem(icon = Icons.Default.CalendarToday, label = "Member Since", value = user.joinDate)
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        Row(modifier = Modifier.fillMaxWidth().clickable { showUpdatePasswordDialog = true }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Lock, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text("Update Password", fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
 

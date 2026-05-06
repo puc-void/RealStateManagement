@@ -19,7 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -132,10 +132,10 @@ fun AgentDashboardScreen(
                             Text("Agent Dashboard", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
                         }
                         IconButton(
-                            onClick = { /* Settings */ },
+                            onClick = { viewModel.refreshDashboard() },
                             modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
                         ) {
-                            Icon(Icons.Default.Settings, null, tint = MaterialTheme.colorScheme.primary)
+                            Icon(Icons.Default.Refresh, null, tint = MaterialTheme.colorScheme.primary)
                         }
                     }
                     
@@ -301,7 +301,7 @@ fun AgentDashboardScreen(
 }
 
 @Composable
-fun AgentStatCard(modifier: Modifier = Modifier, title: String, value: Int, icon: androidx.compose.ui.graphics.vector.ImageVector, gradient: Brush) {
+fun AgentStatCard(modifier: Modifier = Modifier, title: String, value: Int, icon: ImageVector, gradient: Brush) {
     var count by remember { mutableStateOf(0) }
     LaunchedEffect(value) { count = value }
     val animatedCount by animateIntAsState(targetValue = count, animationSpec = tween(1500), label = "countAnim")
@@ -394,90 +394,6 @@ fun AgentBookingItem(
     }
 }
 
-
-@Composable
-fun AgentStatCard(modifier: Modifier = Modifier, title: String, value: Int, color: Color, onClick: () -> Unit = {}) {
-    var count by remember { mutableStateOf(0) }
-    LaunchedEffect(value) { count = value }
-    val animatedCount by animateIntAsState(
-        targetValue = count,
-        animationSpec = tween(1500), label = ""
-    )
-
-    Card(
-        modifier = modifier
-            .height(100.dp)
-            .shadow(4.dp, RoundedCornerShape(16.dp))
-            .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = color)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp).fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(animatedCount.toString(), style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = Color.White)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(title, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.8f))
-        }
-    }
-}
-
-@Composable
-fun AgentBookingItem(
-    booking: com.example.realstate.data.model.BookedPropertyDto, 
-    onClick: () -> Unit,
-    onAccept: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 6.dp)
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(booking.user?.name ?: "Anonymous", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
-                Text(
-                    "Proposed: ${booking.proposedAmount} for ${booking.property?.title ?: "Property"}",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            if (!booking.isSold) {
-                Button(
-                    onClick = onAccept,
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                    modifier = Modifier.height(32.dp)
-                ) {
-                    Text("Accept", fontSize = 12.sp)
-                }
-            } else {
-                Icon(Icons.Default.CheckCircle, contentDescription = "Sold", tint = Color(0xFF4CAF50))
-            }
-        }
-    }
-}
-
 @Composable
 fun BookingDetailDialog(
     booking: BookedPropertyDto,
@@ -538,6 +454,7 @@ fun BookingDetailDialog(
         }
     )
 }
+
 
 @Composable
 fun WishlistActivityItem(item: com.example.realstate.data.model.WishlistItemDto) {

@@ -77,7 +77,7 @@ fun DetailScreen(
                 showReviewDialog = false
                 reviewToEdit = null
             },
-            onSubmit = { rating, comment ->
+            onSubmit = { rating: Int, comment: String ->
                 if (reviewToEdit != null) {
                     detailViewModel.updateReview(reviewToEdit!!.id, rating, comment)
                 } else {
@@ -261,8 +261,8 @@ fun DetailScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            PremiumFeature(icon = Icons.Default.Bed, value = property.beds, label = "Beds")
-                            PremiumFeature(icon = Icons.Default.Bathtub, value = property.baths, label = "Baths")
+                            PremiumFeature(icon = Icons.Default.Bed, value = property.beds.toString(), label = "Beds")
+                            PremiumFeature(icon = Icons.Default.Bathtub, value = property.baths.toString(), label = "Baths")
                             PremiumFeature(icon = Icons.Default.SquareFoot, value = property.area, label = "Sqft")
                         }
 
@@ -403,133 +403,5 @@ fun PremiumFeature(icon: androidx.compose.ui.graphics.vector.ImageVector, value:
         Text(value, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
         Text(label, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ReviewSubmissionDialog(initialRating: Int, initialDescription: String, onDismiss: () -> Unit, onSubmit: (Int, String) -> Unit) {
-    var rating by remember { mutableStateOf(initialRating) }
-    var description by remember { mutableStateOf(initialDescription) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Share Your Experience", fontWeight = FontWeight.ExtraBold) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                    repeat(5) { index ->
-                        IconButton(onClick = { rating = index + 1 }) {
-                            Icon(
-                                Icons.Default.Star,
-                                null,
-                                tint = if (index < rating) Color(0xFFFFB300) else Color.LightGray
-                            )
-                        }
-                    }
-                }
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Your thoughts...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = { onSubmit(rating, description) }, shape = RoundedCornerShape(12.dp)) {
-                Text("Submit Review")
-            }
-        }
-    )
-}
-
-@Composable
-fun BookingSubmissionDialog(propertyTitle: String, onDismiss: () -> Unit, onSubmit: (String) -> Unit) {
-    var amount by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Property Booking", fontWeight = FontWeight.ExtraBold) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("You are requesting to book:", fontSize = 14.sp)
-                Text(propertyTitle, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = MaterialTheme.colorScheme.primary)
-                OutlinedTextField(
-                    value = amount,
-                    onValueChange = { amount = it },
-                    label = { Text("Your Proposed Offer ($)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp)
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = { onSubmit(amount) }, shape = RoundedCornerShape(12.dp)) {
-                Text("Send Offer")
-            }
-        }
-    )
-}
-
-
-@Composable
-fun FeatureIcon(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
-            .shadow(2.dp, RoundedCornerShape(16.dp))
-    ) {
-        Icon(icon, contentDescription = label, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(label, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
-    }
-}
-
-@Composable
-fun Chip(text: String) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 20.dp, vertical = 12.dp)
-            .shadow(2.dp, RoundedCornerShape(20.dp))
-    ) {
-        Text(text, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-    }
-}
-
-@Composable
-fun BookingSubmissionDialog(propertyTitle: String, onDismiss: () -> Unit, onSubmit: (String) -> Unit) {
-    var amount by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Book Property") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("Requesting: $propertyTitle", fontWeight = FontWeight.Bold)
-                OutlinedTextField(
-                    value = amount,
-                    onValueChange = { amount = it },
-                    label = { Text("Proposed Amount (e.g. $2500)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = { onSubmit(amount) }) {
-                Text("Send Booking Request")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
 }
 

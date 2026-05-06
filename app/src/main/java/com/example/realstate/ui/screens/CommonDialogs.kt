@@ -8,8 +8,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.realstate.ui.components.LocationPickerBottomSheet
 import com.google.android.gms.maps.model.LatLng
 
@@ -184,6 +186,39 @@ fun PropertyFormDialog(
                 onConfirm(title, description, imageUrl, location, priceRange, propertyType)
             }) {
                 Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+fun BookingSubmissionDialog(propertyTitle: String, onDismiss: () -> Unit, onSubmit: (String) -> Unit) {
+    var amount by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Property Booking", fontWeight = FontWeight.ExtraBold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Text("You are requesting to book:", fontSize = 14.sp)
+                Text(propertyTitle, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = MaterialTheme.colorScheme.primary)
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = { amount = it },
+                    label = { Text("Your Proposed Offer ($)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onSubmit(amount) }, shape = RoundedCornerShape(12.dp)) {
+                Text("Send Offer")
             }
         },
         dismissButton = {

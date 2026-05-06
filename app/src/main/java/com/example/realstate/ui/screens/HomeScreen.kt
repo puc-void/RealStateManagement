@@ -4,6 +4,7 @@ import android.location.Geocoder
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -103,8 +104,9 @@ fun HomeScreen(
                         )
                     }
                     Box(modifier = Modifier.padding(end = 16.dp)) {
+                        val currentUser = MockData.currentUser
                         AsyncImage(
-                            model = MockData.currentUser.profilePicUrl,
+                            model = currentUser.profilePicUrl,
                             contentDescription = "Profile Pic",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier

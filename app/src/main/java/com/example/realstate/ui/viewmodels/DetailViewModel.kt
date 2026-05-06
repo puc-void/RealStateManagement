@@ -6,6 +6,7 @@ import com.example.realstate.data.MockData
 import com.example.realstate.data.Property
 import com.example.realstate.data.UserRole
 import com.example.realstate.data.network.RetrofitClient
+import com.example.realstate.data.repository.WishlistRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,8 +29,21 @@ class DetailViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(DetailUiState())
     val uiState: StateFlow<DetailUiState> = _uiState.asStateFlow()
 
-    // Mock constants for now
-    private val wishlistId get() = MockData.wishlistId
+    init {
+        observeWishlist()
+    }
+
+    private fun observeWishlist() {
+        viewModelScope.launch {
+            WishlistRepository.wishlistItems.collect { items ->
+                val propId = _uiState.value.property?.id
+                if (propId != null) {
+                    val wishlisted = items.any { it.propertyId.toString() == propId }
+                    _uiState.update { it.copy(isWishlisted = wishlisted) }
+                }
+            }
+        }
+    }
 
     fun loadProperty(propertyId: String) {
         val userId = MockData.currentUser.id
@@ -38,13 +52,14 @@ class DetailViewModel : ViewModel() {
             try {
                 val propertyDeferred = async { RetrofitClient.propertyApi.getPropertyDetails(propertyId) }
                 val reviewsDeferred = async { RetrofitClient.reviewApi.getReviewsByProperty(propertyId) }
-                val wishlistDeferred = if (userId.isNotEmpty()) {
-                    async { RetrofitClient.wishlistApi.getWishlistItemsByUserId(userId) }
-                } else null
+                
+                // Ensure wishlist is loaded in repo
+                if (userId.isNotEmpty()) {
+                    WishlistRepository.loadWishlist()
+                }
 
                 val propResponse = propertyDeferred.await()
                 val reviewsResponse = reviewsDeferred.await()
-                val wishlistResponse = wishlistDeferred?.await()
 
                 if (propResponse.success && propResponse.data != null) {
                     val dto = propResponse.data
@@ -67,9 +82,7 @@ class DetailViewModel : ViewModel() {
                     )
                     
                     val reviews = if (reviewsResponse.success) reviewsResponse.data else emptyList()
-                    val isWishlisted = if (wishlistResponse?.success == true) {
-                        wishlistResponse.data.any { it.propertyId.toString() == propertyId }
-                    } else false
+                    val isWishlisted = WishlistRepository.wishlistItems.value.any { it.propertyId.toString() == propertyId }
 
                     _uiState.update { it.copy(
                         property = property,
@@ -89,39 +102,14 @@ class DetailViewModel : ViewModel() {
     }
 
     fun toggleWishlist(propertyId: String, agentId: String) {
-        val userId = MockData.currentUser.id
         viewModelScope.launch {
-            if (userId.isEmpty()) {
-                _uiState.update { it.copy(error = "User not logged in.") }
-                return@launch
-            }
-            try {
-                if (_uiState.value.isWishlisted) {
-                    // Need to find the wishlist item ID to delete
-                    val wishlistResponse = RetrofitClient.wishlistApi.getWishlistItemsByUserId(userId)
-                    if (wishlistResponse.success) {
-                        val item = wishlistResponse.data.find { it.propertyId.toString() == propertyId }
-                        if (item != null) {
-                            val deleteResponse = RetrofitClient.wishlistApi.deleteWishlistItem(item.id)
-                            if (deleteResponse.success) {
-                                _uiState.update { it.copy(isWishlisted = false, successMessage = "Removed from wishlist") }
-                                clearSuccessMessage()
-                            }
-                        }
-                    }
-                } else {
-                    val body = mapOf(
-                        "propertyId" to propertyId.toInt(),
-                        "agentId" to agentId
-                    )
-                    val response = RetrofitClient.wishlistApi.addWishlistItem(userId, body)
-                    if (response.success) {
-                        _uiState.update { it.copy(isWishlisted = true, successMessage = "Added to wishlist!") }
-                        clearSuccessMessage()
-                    }
-                }
-            } catch (e: Exception) {
-                // Handle error
+            val success = WishlistRepository.toggleWishlist(propertyId, agentId)
+            if (success) {
+                val msg = if (_uiState.value.isWishlisted) "Removed from wishlist" else "Added to wishlist!"
+                _uiState.update { it.copy(successMessage = msg) }
+                clearSuccessMessage()
+            } else {
+                _uiState.update { it.copy(error = "Action failed.") }
             }
         }
     }
@@ -209,3 +197,4 @@ class DetailViewModel : ViewModel() {
         }
     }
 }
+

@@ -12,6 +12,18 @@ interface AuthApiService {
 
     @GET("auth/me")
     suspend fun getMe(): BaseResponse<UserDto>
+
+    @PUT("auth/user/change-email/{id}")
+    suspend fun changeEmail(
+        @Path("id") id: String,
+        @Body body: Map<String, String>
+    ): BaseResponse<UserDto>
+
+    @PUT("auth/update-password/{id}")
+    suspend fun updatePassword(
+        @Path("id") id: String,
+        @Body body: Map<String, String>
+    ): BaseResponse<UserDto>
 }
 
 interface VerificationApiService {
