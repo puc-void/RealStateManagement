@@ -32,6 +32,7 @@ import com.example.realstate.ui.components.MultiPinMapCard
 import com.example.realstate.ui.viewmodels.AgentViewModel
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,10 +43,19 @@ fun AgentDashboardScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     
-    LaunchedEffect(uiState.notification) {
-        uiState.notification?.let {
-            android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_LONG).show()
-        }
+    if (uiState.notification != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.clearNotification() },
+            title = { Text("Notification", fontWeight = FontWeight.Bold) },
+            text = { Text(uiState.notification ?: "") },
+            confirmButton = {
+                TextButton(onClick = { viewModel.clearNotification() }) {
+                    Text("OK")
+                }
+            },
+            shape = RoundedCornerShape(16.dp),
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     }
 
     val agentName = MockData.currentUser.name
@@ -61,8 +71,20 @@ fun AgentDashboardScreen(
     var propertyToEdit by remember { mutableStateOf<com.example.realstate.data.Property?>(null) }
     var bookingToShowDetail by remember { mutableStateOf<BookedPropertyDto?>(null) }
 
+    val coroutineScope = rememberCoroutineScope()
+    val imgBbApiKey = "ea1875998a87f632563615dc9b7d7eef"
+
     if (showAddDialog) {
         PropertyFormDialog(
+            isUploadingImage = uiState.isUploadingImage,
+            onImageUploadRequest = { uri, onResult ->
+                coroutineScope.launch {
+                    val url = viewModel.uploadImageToImgBB(context, uri, imgBbApiKey)
+                    if (url != null) {
+                        onResult(url)
+                    }
+                }
+            },
             onDismiss = { showAddDialog = false },
             onConfirm = { title, desc, img, loc, price, type ->
                 viewModel.addProperty(title, desc, img, loc, price, type)
@@ -89,6 +111,15 @@ fun AgentDashboardScreen(
     propertyToEdit?.let { prop ->
         PropertyFormDialog(
             initialProperty = prop,
+            isUploadingImage = uiState.isUploadingImage,
+            onImageUploadRequest = { uri, onResult ->
+                coroutineScope.launch {
+                    val url = viewModel.uploadImageToImgBB(context, uri, imgBbApiKey)
+                    if (url != null) {
+                        onResult(url)
+                    }
+                }
+            },
             onDismiss = { propertyToEdit = null },
             onConfirm = { title, desc, img, loc, price, type ->
                 viewModel.updateProperty(prop.id, title, desc, img, loc, price, type)

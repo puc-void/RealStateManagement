@@ -11,7 +11,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
 data class ProfileUiState(
     val wishlist: List<Property> = emptyList(),
@@ -20,7 +23,8 @@ data class ProfileUiState(
     val error: String? = null,
     val successMessage: String? = null,
     val isOtpSent: Boolean = false,
-    val userId: String = ""
+    val userId: String = "",
+    val isUploadingImage: Boolean = false
 )
 
 class ProfileViewModel : ViewModel() {
@@ -140,12 +144,46 @@ class ProfileViewModel : ViewModel() {
                         location = response.data?.address ?: MockData.currentUser.location
                     )
                     loadProfileData()
+                    _uiState.update { it.copy(isLoading = false, successMessage = "Profile updated successfully!") }
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
+        }
+    }
+
+    suspend fun uploadImageToImgBB(context: android.content.Context, uri: android.net.Uri, apiKey: String): String? {
+        return try {
+            _uiState.update { it.copy(isUploadingImage = true, error = null) }
+            
+            val contentResolver = context.contentResolver
+            val inputStream = contentResolver.openInputStream(uri)
+            val bytes = inputStream?.readBytes()
+            inputStream?.close()
+
+            if (bytes != null) {
+                val mediaType = "image/*".toMediaTypeOrNull()
+                val requestBody = bytes.toRequestBody(mediaType)
+                val multipartBody = okhttp3.MultipartBody.Part.createFormData("image", "upload.jpg", requestBody)
+
+                val response = RetrofitClient.imgBbApi.uploadImage(apiKey, multipartBody)
+                _uiState.update { it.copy(isUploadingImage = false) }
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    response.body()?.data?.url
+                } else {
+                    _uiState.update { it.copy(error = "Image upload failed: ${response.message()}") }
+                    null
+                }
+            } else {
+                _uiState.update { it.copy(isUploadingImage = false, error = "Failed to read image") }
+                null
+            }
+        } catch (e: Exception) {
+            _uiState.update { it.copy(isUploadingImage = false, error = e.message) }
+            null
         }
     }
 

@@ -63,10 +63,19 @@ fun DetailScreen(
     var showBookingDialog by remember { mutableStateOf(false) }
     var reviewToEdit by remember { mutableStateOf<ReviewDto?>(null) }
     
-    LaunchedEffect(uiState.successMessage) {
-        uiState.successMessage?.let {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-        }
+    if (uiState.successMessage != null) {
+        AlertDialog(
+            onDismissRequest = { detailViewModel.clearSuccessMessage() },
+            title = { Text("Success", fontWeight = FontWeight.Bold) },
+            text = { Text(uiState.successMessage ?: "") },
+            confirmButton = {
+                TextButton(onClick = { detailViewModel.clearSuccessMessage() }) {
+                    Text("OK")
+                }
+            },
+            shape = RoundedCornerShape(16.dp),
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     }
 
     if (showReviewDialog && property != null) {
@@ -95,7 +104,6 @@ fun DetailScreen(
             onDismiss = { showBookingDialog = false },
             onSubmit = { amount ->
                 detailViewModel.bookProperty(property.id.toInt(), property.agentId, amount)
-                Toast.makeText(context, "Booking request sent! Agent notified.", Toast.LENGTH_LONG).show()
                 showBookingDialog = false
             }
         )

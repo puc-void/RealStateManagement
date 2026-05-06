@@ -140,13 +140,16 @@ class AuthViewModel : ViewModel() {
                     val msg = response.message.ifBlank { "Sign up failed. This email might already be registered." }
                     _state.update { AuthState.Error(msg) }
                 }
-            } catch (e: Exception) {
-                val errorMsg = when {
-                    e.message?.contains("409") == true -> "This email address is already registered."
-                    e.message?.contains("400") == true -> "Invalid registration data. Please check your inputs."
-                    else -> e.message ?: "Connection error. Please check your internet."
+            } catch (e: retrofit2.HttpException) {
+                val errorMsg = when (e.code()) {
+                    400 -> "Invalid registration data. Please check your inputs."
+                    409 -> "This email address is already registered."
+                    in 500..599 -> "Server error, please try again later."
+                    else -> "Registration failed. Please try again."
                 }
                 _state.update { AuthState.Error(errorMsg) }
+            } catch (e: Exception) {
+                _state.update { AuthState.Error("Connection error. Please check your internet.") }
             }
         }
     }
@@ -167,8 +170,16 @@ class AuthViewModel : ViewModel() {
                              else response.message.ifBlank { "Verification failed. Please try again." }
                     _state.update { AuthState.Error(msg) }
                 }
+            } catch (e: retrofit2.HttpException) {
+                val errorMsg = when (e.code()) {
+                    400 -> "Invalid OTP code. Please check your email."
+                    401, 403 -> "OTP has expired. Please try signing up again."
+                    in 500..599 -> "Server error, please try again later."
+                    else -> "Verification failed. Please try again."
+                }
+                _state.update { AuthState.Error(errorMsg) }
             } catch (e: Exception) {
-                _state.update { AuthState.Error(e.message ?: "Verification failed. Please try again.") }
+                _state.update { AuthState.Error("Connection error. Please check your internet.") }
             }
         }
     }
@@ -232,8 +243,15 @@ class AuthViewModel : ViewModel() {
                 } else {
                     _state.update { AuthState.Error(response.message) }
                 }
+            } catch (e: retrofit2.HttpException) {
+                val errorMsg = when (e.code()) {
+                    401, 404 -> "Invalid email or password."
+                    in 500..599 -> "Server error, please try again later."
+                    else -> "Sign in failed. Check your credentials."
+                }
+                _state.update { AuthState.Error(errorMsg) }
             } catch (e: Exception) {
-                _state.update { AuthState.Error(e.message ?: "Sign in failed. Check your credentials.") }
+                _state.update { AuthState.Error("Connection error. Please check your internet.") }
             }
         }
     }

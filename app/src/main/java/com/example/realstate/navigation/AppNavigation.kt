@@ -20,7 +20,7 @@ import com.example.realstate.ui.screens.SignUpScreen
 import com.example.realstate.ui.screens.WishlistItemDetailScreen
 import com.example.realstate.ui.viewmodels.AuthViewModel
 
-private const val TRANSITION_DURATION = 400
+private const val TRANSITION_DURATION = 200
 
 @Composable
 fun AppNavigation() {
@@ -29,7 +29,7 @@ fun AppNavigation() {
     val authViewModel: AuthViewModel = viewModel()
 
     val token = RealStateApp.preferenceManager.getToken()
-    val startDest = if (token != null) {
+    val startDest = if (!token.isNullOrBlank()) {
         val savedRole = RealStateApp.preferenceManager.getUserRole() ?: "USER"
         val savedUserId = RealStateApp.preferenceManager.getUserId() ?: ""
         val roleEnum = when (savedRole.uppercase()) {

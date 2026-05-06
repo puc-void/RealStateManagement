@@ -8,7 +8,7 @@ class PreferenceManager(context: Context) {
         context.getSharedPreferences("real_state_prefs", Context.MODE_PRIVATE)
 
     fun saveToken(token: String) {
-        sharedPreferences.edit().putString("auth_token", token).apply()
+        sharedPreferences.edit().putString("auth_token", token).commit()
     }
 
     fun getToken(): String? {
@@ -16,7 +16,7 @@ class PreferenceManager(context: Context) {
     }
 
     fun saveUserId(userId: String) {
-        sharedPreferences.edit().putString("user_id", userId).apply()
+        sharedPreferences.edit().putString("user_id", userId).commit()
     }
 
     fun getUserId(): String? {
@@ -24,7 +24,7 @@ class PreferenceManager(context: Context) {
     }
 
     fun saveUserRole(role: String) {
-        sharedPreferences.edit().putString("user_role", role).apply()
+        sharedPreferences.edit().putString("user_role", role).commit()
     }
 
     fun getUserRole(): String? {
@@ -32,6 +32,6 @@ class PreferenceManager(context: Context) {
     }
 
     fun clearSession() {
-        sharedPreferences.edit().clear().apply()
+        sharedPreferences.edit().clear().commit()
     }
 }

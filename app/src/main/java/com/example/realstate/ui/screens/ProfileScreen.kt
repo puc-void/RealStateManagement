@@ -34,6 +34,7 @@ import com.example.realstate.data.MockData
 import com.example.realstate.data.UserRole
 import com.example.realstate.ui.components.ReviewItem
 import com.example.realstate.ui.viewmodels.ProfileViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +64,26 @@ fun ProfileScreen(
     var showUpdatePasswordDialog by remember { mutableStateOf(false) }
     var currentPasswordInput by remember { mutableStateOf("") }
     var newPasswordInput by remember { mutableStateOf("") }
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    // TODO: Replace with your actual ImgBB API key
+    val imgBbApiKey = "ea1875998a87f632563615dc9b7d7eef" 
+
+    val imagePickerLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let {
+                coroutineScope.launch {
+                    val url = viewModel.uploadImageToImgBB(context, it, imgBbApiKey)
+                    if (url != null) {
+                        editImageUrl = url
+                        viewModel.updateProfile(editName, url, editPhone, editLocation)
+                    }
+                }
+            }
+        }
+    )
 
     LaunchedEffect(uiState.isOtpSent) {
         if (uiState.isOtpSent) {
@@ -198,7 +219,31 @@ fun ProfileScreen(
                     OutlinedTextField(value = editName, onValueChange = { editName = it }, label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
                     OutlinedTextField(value = editPhone, onValueChange = { editPhone = it }, label = { Text("Phone Number") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
                     OutlinedTextField(value = editLocation, onValueChange = { editLocation = it }, label = { Text("Location") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
-                    OutlinedTextField(value = editImageUrl, onValueChange = { editImageUrl = it }, label = { Text("Profile Image URL") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+                    
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = editImageUrl, 
+                            onValueChange = { editImageUrl = it }, 
+                            label = { Text("Profile Image URL") }, 
+                            modifier = Modifier.weight(1f), 
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(
+                            onClick = { 
+                                imagePickerLauncher.launch(
+                                    androidx.activity.result.PickVisualMediaRequest(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                ) 
+                            },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape)
+                        ) {
+                            Icon(Icons.Default.Image, contentDescription = "Pick Image", tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                    if (uiState.isUploadingImage) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        Text("Uploading image...", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                    }
                 }
             },
             confirmButton = {
@@ -267,13 +312,21 @@ fun ProfileScreen(
                                     .background(MaterialTheme.colorScheme.surfaceVariant)
                             )
                             Surface(
-                                modifier = Modifier.size(32.dp).clickable { showEditDialog = true },
+                                modifier = Modifier.size(32.dp).clickable { 
+                                    imagePickerLauncher.launch(
+                                        androidx.activity.result.PickVisualMediaRequest(androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                    ) 
+                                },
                                 shape = CircleShape,
                                 color = MaterialTheme.colorScheme.primary,
                                 shadowElevation = 4.dp
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
-                                    Icon(Icons.Default.CameraAlt, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                                    if (uiState.isUploadingImage) {
+                                        CircularProgressIndicator(modifier = Modifier.size(16.dp), color = Color.White, strokeWidth = 2.dp)
+                                    } else {
+                                        Icon(Icons.Default.CameraAlt, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                                    }
                                 }
                             }
                         }

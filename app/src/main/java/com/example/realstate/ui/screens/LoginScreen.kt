@@ -224,30 +224,23 @@ fun LoginScreen(
             }
         }
 
-        // Error message overlay
-        AnimatedVisibility(
-            visible = errorMsg != null,
-            enter = fadeIn() + slideInVertically(),
-            exit = fadeOut() + slideOutVertically()
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.errorContainer)
-                    .padding(16.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(errorMsg ?: "", color = MaterialTheme.colorScheme.onErrorContainer, modifier = Modifier.weight(1f))
-                    IconButton(onClick = { errorMsg = null }) {
-                        Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error)
-                    }
+    }
+    
+    if (errorMsg != null) {
+        AlertDialog(
+            onDismissRequest = { errorMsg = null },
+            title = { Text("Login Failed", fontWeight = FontWeight.Bold) },
+            text = { Text(errorMsg ?: "") },
+            confirmButton = {
+                TextButton(onClick = { errorMsg = null }) {
+                    Text("OK")
                 }
-            }
-        }
+            },
+            shape = RoundedCornerShape(16.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.error,
+            textContentColor = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 

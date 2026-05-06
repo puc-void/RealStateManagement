@@ -39,6 +39,18 @@ object RetrofitClient {
             .build()
     }
 
+    private val imgBbRetrofit: Retrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://api.imgbb.com/")
+            .client(OkHttpClient.Builder().addInterceptor(loggingInterceptor).build())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    val imgBbApi: ImgBBApiService by lazy {
+        imgBbRetrofit.create(ImgBBApiService::class.java)
+    }
+
     val propertyApi: PropertyApiService by lazy {
         retrofit.create(PropertyApiService::class.java)
     }

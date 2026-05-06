@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
 data class AgentUiState(
     val properties: List<Property> = emptyList(),
@@ -22,7 +24,8 @@ data class AgentUiState(
     val activeBookingsCount: Int = 0,
     val selectedFilter: String = "All",
     val notification: String? = null,
-    val wishlistItems: List<com.example.realstate.data.model.WishlistItemDto> = emptyList()
+    val wishlistItems: List<com.example.realstate.data.model.WishlistItemDto> = emptyList(),
+    val isUploadingImage: Boolean = false
 )
 
 class AgentViewModel : ViewModel() {
@@ -260,5 +263,42 @@ class AgentViewModel : ViewModel() {
 
     fun setFilter(filter: String) {
         _uiState.update { it.copy(selectedFilter = filter) }
+    }
+
+    fun clearNotification() {
+        _uiState.update { it.copy(notification = null) }
+    }
+
+    suspend fun uploadImageToImgBB(context: android.content.Context, uri: android.net.Uri, apiKey: String): String? {
+        return try {
+            _uiState.update { it.copy(isUploadingImage = true, error = null) }
+            
+            val contentResolver = context.contentResolver
+            val inputStream = contentResolver.openInputStream(uri)
+            val bytes = inputStream?.readBytes()
+            inputStream?.close()
+
+            if (bytes != null) {
+                val mediaType = "image/*".toMediaTypeOrNull()
+                val requestBody = bytes.toRequestBody(mediaType)
+                val multipartBody = okhttp3.MultipartBody.Part.createFormData("image", "property.jpg", requestBody)
+
+                val response = RetrofitClient.imgBbApi.uploadImage(apiKey, multipartBody)
+                _uiState.update { it.copy(isUploadingImage = false) }
+
+                if (response.isSuccessful && response.body()?.success == true) {
+                    response.body()?.data?.url
+                } else {
+                    _uiState.update { it.copy(error = "Image upload failed: ${response.message()}") }
+                    null
+                }
+            } else {
+                _uiState.update { it.copy(isUploadingImage = false, error = "Failed to read image") }
+                null
+            }
+        } catch (e: Exception) {
+            _uiState.update { it.copy(isUploadingImage = false, error = e.message) }
+            null
+        }
     }
 }

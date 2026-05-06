@@ -2,6 +2,7 @@ package com.example.realstate.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.*
@@ -63,6 +64,8 @@ fun ReviewSubmissionDialog(
 @Composable
 fun PropertyFormDialog(
     initialProperty: com.example.realstate.data.Property? = null,
+    isUploadingImage: Boolean = false,
+    onImageUploadRequest: (android.net.Uri, (String) -> Unit) -> Unit = { _, _ -> },
     onDismiss: () -> Unit,
     onConfirm: (title: String, description: String, imageUrl: String, location: String, priceRange: String, propertyType: String) -> Unit
 ) {
@@ -74,6 +77,17 @@ fun PropertyFormDialog(
     var propertyType by remember { mutableStateOf(initialProperty?.category ?: "HOUSE") }
     var showMapPicker by remember { mutableStateOf(false) }
     var pickedLatLng by remember { mutableStateOf<LatLng?>(null) }
+    
+    val imagePickerLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            if (uri != null) {
+                onImageUploadRequest(uri) { uploadedUrl ->
+                    imageUrl = uploadedUrl
+                }
+            }
+        }
+    )
 
     if (showMapPicker) {
         LocationPickerBottomSheet(
@@ -104,12 +118,44 @@ fun PropertyFormDialog(
                     label = { Text("Description") },
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
-                    value = imageUrl,
-                    onValueChange = { imageUrl = it },
-                    label = { Text("Image URL") },
-                    modifier = Modifier.fillMaxWidth()
+                Text(
+                    "Image",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = imageUrl,
+                        onValueChange = { imageUrl = it },
+                        label = { Text("Image URL") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                    FilledTonalIconButton(
+                        onClick = { 
+                            imagePickerLauncher.launch(
+                                androidx.activity.result.PickVisualMediaRequest(
+                                    androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
+                                )
+                            )
+                        },
+                        modifier = Modifier.size(56.dp)
+                    ) {
+                        if (isUploadingImage) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = "Upload Image",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
 
                 // --- Location with Map Picker ---
                 Text(
@@ -182,9 +228,10 @@ fun PropertyFormDialog(
             }
         },
         confirmButton = {
-            Button(onClick = {
-                onConfirm(title, description, imageUrl, location, priceRange, propertyType)
-            }) {
+            Button(
+                onClick = { onConfirm(title, description, imageUrl, location, priceRange, propertyType) },
+                enabled = !isUploadingImage
+            ) {
                 Text("Save")
             }
         },

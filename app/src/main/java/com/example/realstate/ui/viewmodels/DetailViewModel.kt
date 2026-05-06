@@ -115,7 +115,7 @@ class DetailViewModel : ViewModel() {
     }
 
 
-    private fun clearSuccessMessage() {
+    fun clearSuccessMessage() {
         viewModelScope.launch {
             kotlinx.coroutines.delay(3000)
             _uiState.update { it.copy(successMessage = null) }

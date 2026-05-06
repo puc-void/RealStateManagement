@@ -207,10 +207,10 @@ fun MainScreen(
                 navController = navController,
                 startDestination = startDest,
                 modifier = Modifier.padding(innerPadding).fillMaxSize(),
-                enterTransition = { fadeIn(animationSpec = tween(400)) + slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(400)) },
-                exitTransition = { fadeOut(animationSpec = tween(400)) + slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(400)) },
-                popEnterTransition = { fadeIn(animationSpec = tween(400)) + slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(400)) },
-                popExitTransition = { fadeOut(animationSpec = tween(400)) + slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(400)) }
+                enterTransition = { fadeIn(animationSpec = tween(200)) + slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(200)) },
+                exitTransition = { fadeOut(animationSpec = tween(200)) + slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(200)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(200)) + slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(200)) },
+                popExitTransition = { fadeOut(animationSpec = tween(200)) + slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(200)) }
             ) {
                 composable("home") {
                     HomeScreen(
