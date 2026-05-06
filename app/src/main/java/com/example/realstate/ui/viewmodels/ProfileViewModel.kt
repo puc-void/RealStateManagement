@@ -70,7 +70,7 @@ class ProfileViewModel : ViewModel() {
                 val reviewsDeferred = async { RetrofitClient.reviewApi.getReviewsByUser(userId) }
                 val reviewsResponse = reviewsDeferred.await()
 
-                val reviews = if (reviewsResponse.success) reviewsResponse.data else emptyList()
+                val reviews = if (reviewsResponse.success) reviewsResponse.data ?: emptyList() else emptyList()
 
                 _uiState.update { it.copy(
                     reviews = reviews,
@@ -134,10 +134,10 @@ class ProfileViewModel : ViewModel() {
                 val response = RetrofitClient.userApi.updateProfile(userId, updateMap)
                 if (response.success) {
                     MockData.currentUser = MockData.currentUser.copy(
-                        name = response.data.name,
-                        profilePicUrl = if (response.data.image?.startsWith("data:") == true) MockData.currentUser.profilePicUrl else response.data.image ?: MockData.currentUser.profilePicUrl,
-                        phone = response.data.contactNumber ?: MockData.currentUser.phone,
-                        location = response.data.address ?: MockData.currentUser.location
+                        name = response.data?.name ?: MockData.currentUser.name,
+                        profilePicUrl = if (response.data?.image?.startsWith("data:") == true) MockData.currentUser.profilePicUrl else response.data?.image ?: MockData.currentUser.profilePicUrl,
+                        phone = response.data?.contactNumber ?: MockData.currentUser.phone,
+                        location = response.data?.address ?: MockData.currentUser.location
                     )
                     loadProfileData()
                 } else {
@@ -173,7 +173,7 @@ class ProfileViewModel : ViewModel() {
                 if (response.success) {
                     val meResponse = RetrofitClient.authApi.getMe()
                     if (meResponse.success) {
-                        MockData.currentUser = MockData.currentUser.copy(email = meResponse.data.email ?: MockData.currentUser.email)
+                        MockData.currentUser = MockData.currentUser.copy(email = meResponse.data?.email ?: MockData.currentUser.email)
                     }
                     _uiState.update { it.copy(isLoading = false, isOtpSent = false, successMessage = "Email successfully verified and updated!") }
                 } else {

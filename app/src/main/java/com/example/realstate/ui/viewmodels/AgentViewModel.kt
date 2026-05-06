@@ -43,7 +43,7 @@ class AgentViewModel : ViewModel() {
                 if (agentId.isBlank()) {
                     val agentsRes = RetrofitClient.agentApi.getAllAgents()
                     if (agentsRes.success) {
-                        val myAgent = agentsRes.data.find { it.userId == MockData.currentUser.id }
+                        val myAgent = agentsRes.data?.find { it.userId == MockData.currentUser.id }
                         if (myAgent != null) {
                             MockData.currentAgentId = myAgent.id
                         }
@@ -83,13 +83,13 @@ class AgentViewModel : ViewModel() {
                     var bookings = emptyList<com.example.realstate.data.model.BookedPropertyDto>()
 
                     if (bookedResponse.success) {
-                        bookings = bookedResponse.data.filter { it.agentId == agentId || it.property?.agentId == agentId }
+                        bookings = bookedResponse.data?.filter { it.agentId == agentId || it.property?.agentId == agentId } ?: emptyList()
                         sold = bookings.count { it.isSold }
                     }
 
                     var wishlistedItems = emptyList<com.example.realstate.data.model.WishlistItemDto>()
                     if (wishlistResponse.success) {
-                        wishlistedItems = wishlistResponse.data.filter { it.agentId == agentId || it.property?.agentId == agentId }
+                        wishlistedItems = wishlistResponse.data?.filter { it.agentId == agentId || it.property?.agentId == agentId } ?: emptyList()
                     }
 
                     val newBookingsCount = bookings.size

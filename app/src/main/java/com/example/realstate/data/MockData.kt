@@ -5,17 +5,26 @@ import com.example.realstate.data.model.UserDto
 object MockData {
 
     // Global Session State
-    var currentUser = User(
-        name = "Loading...",
-        email = "",
-        profilePicUrl = "https://i.pravatar.cc/150",
-        role = UserRole.USER,
-        phone = "",
-        location = "",
-        joinDate = "",
-        id = "",
-        wishlistId = ""
+    private val _currentUserFlow = kotlinx.coroutines.flow.MutableStateFlow(
+        User(
+            name = "Loading...",
+            email = "",
+            profilePicUrl = "https://i.pravatar.cc/150",
+            role = UserRole.USER,
+            phone = "",
+            location = "",
+            joinDate = "",
+            id = "",
+            wishlistId = ""
+        )
     )
+    val currentUserFlow: kotlinx.coroutines.flow.StateFlow<User> = _currentUserFlow
+
+    var currentUser: User
+        get() = _currentUserFlow.value
+        set(value) {
+            _currentUserFlow.value = value
+        }
 
     val wishlistId get() = if (currentUser.wishlistId.isNotEmpty()) currentUser.wishlistId else "0d1681c0-aba2-4393-969b-293dbb070999"
     var currentAgentId = ""

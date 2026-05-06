@@ -81,7 +81,7 @@ class DetailViewModel : ViewModel() {
                         agentId = dto.agentId
                     )
                     
-                    val reviews = if (reviewsResponse.success) reviewsResponse.data else emptyList()
+                    val reviews = if (reviewsResponse.success) reviewsResponse.data ?: emptyList() else emptyList()
                     val isWishlisted = WishlistRepository.wishlistItems.value.any { it.propertyId.toString() == propertyId }
 
                     _uiState.update { it.copy(

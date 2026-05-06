@@ -26,7 +26,7 @@ object WishlistRepository {
         try {
             val response = RetrofitClient.wishlistApi.getWishlistItemsByUserId(userId)
             if (response.success) {
-                _wishlistItems.value = response.data
+                _wishlistItems.value = response.data ?: emptyList()
                 _error.value = null
             } else {
                 _error.value = response.message

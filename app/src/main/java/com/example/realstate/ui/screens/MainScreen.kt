@@ -43,7 +43,7 @@ fun MainScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val homeViewModel: HomeViewModel = viewModel()
-    val user = MockData.currentUser
+    val user by MockData.currentUserFlow.collectAsState()
     
     val navItems = remember(user.role) {
         when (user.role) {

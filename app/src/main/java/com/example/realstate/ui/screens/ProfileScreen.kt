@@ -43,13 +43,14 @@ fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val user = MockData.currentUser
+    val user by MockData.currentUserFlow.collectAsState()
     val scrollState = rememberScrollState()
     var showEditDialog by remember { mutableStateOf(false) }
     
     var editName by remember { mutableStateOf(user.name) }
     var editPhone by remember { mutableStateOf(user.phone) }
     var editLocation by remember { mutableStateOf(user.location) }
+    var editImageUrl by remember { mutableStateOf(user.profilePicUrl) }
     
     var showReviewEditDialog by remember { mutableStateOf(false) }
     var reviewToEdit by remember { mutableStateOf<com.example.realstate.data.model.ReviewDto?>(null) }
@@ -197,11 +198,12 @@ fun ProfileScreen(
                     OutlinedTextField(value = editName, onValueChange = { editName = it }, label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
                     OutlinedTextField(value = editPhone, onValueChange = { editPhone = it }, label = { Text("Phone Number") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
                     OutlinedTextField(value = editLocation, onValueChange = { editLocation = it }, label = { Text("Location") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
+                    OutlinedTextField(value = editImageUrl, onValueChange = { editImageUrl = it }, label = { Text("Profile Image URL") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp))
                 }
             },
             confirmButton = {
                 Button(onClick = {
-                    viewModel.updateProfile(editName, user.profilePicUrl, editPhone, editLocation)
+                    viewModel.updateProfile(editName, editImageUrl, editPhone, editLocation)
                     showEditDialog = false
                 }, shape = RoundedCornerShape(12.dp)) {
                     Text("Save Changes")
@@ -265,7 +267,7 @@ fun ProfileScreen(
                                     .background(MaterialTheme.colorScheme.surfaceVariant)
                             )
                             Surface(
-                                modifier = Modifier.size(32.dp).clickable { /* Change pic */ },
+                                modifier = Modifier.size(32.dp).clickable { showEditDialog = true },
                                 shape = CircleShape,
                                 color = MaterialTheme.colorScheme.primary,
                                 shadowElevation = 4.dp
@@ -276,7 +278,11 @@ fun ProfileScreen(
                             }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text(user.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(user.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Profile", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp).clickable { showEditDialog = true })
+                        }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(user.email, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(modifier = Modifier.width(8.dp))

@@ -49,7 +49,7 @@ class HomeViewModel : ViewModel() {
                 
                 val propResponse = RetrofitClient.propertyApi.getAllProperties()
                 if (propResponse.success) {
-                    val props = propResponse.data.map { dto ->
+                    val props = propResponse.data?.map { dto ->
                         Property(
                             id = dto.id.toString(),
                             title = dto.title,
@@ -67,7 +67,7 @@ class HomeViewModel : ViewModel() {
                             agentId = dto.agentId,
                             amenities = listOf("Dynamic")
                         )
-                    }
+                    } ?: emptyList()
                     
                     _uiState.update { 
                         it.copy(

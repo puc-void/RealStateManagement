@@ -34,6 +34,7 @@ class AuthViewModel : ViewModel() {
                 val response = RetrofitClient.authApi.getMe()
                 if (response.success) {
                     val user = response.data
+                    if (user == null) return@launch
                     val roleEnum = when (user.role?.uppercase()) {
                         "ADMIN" -> UserRole.ADMIN
                         "AGENT" -> UserRole.AGENT
@@ -64,7 +65,7 @@ class AuthViewModel : ViewModel() {
                         try {
                             val agentsRes = RetrofitClient.agentApi.getAllAgents()
                             if (agentsRes.success) {
-                                val myAgent = agentsRes.data.find { it.userId == user.id }
+                                val myAgent = agentsRes.data?.find { it.userId == user?.id }
                                 if (myAgent != null) {
                                     MockData.currentAgentId = myAgent.id
                                 }
@@ -106,7 +107,7 @@ class AuthViewModel : ViewModel() {
                     if (image.isNotBlank()) put("image", image)
                 }
                 val response = RetrofitClient.authApi.signup(body)
-                if (response.success) {
+                if (response.success && response.data != null) {
                     val userId = response.data.id ?: ""
                     val token = response.token ?: ""
                     
@@ -180,7 +181,7 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val response = RetrofitClient.authApi.signin(mapOf("email" to email, "password" to password))
-                if (response.success) {
+                if (response.success && response.data != null) {
                     val user = response.data
                     val roleEnum = when (user.role?.uppercase()) {
                         "ADMIN" -> UserRole.ADMIN
@@ -214,7 +215,7 @@ class AuthViewModel : ViewModel() {
                         try {
                             val agentsRes = RetrofitClient.agentApi.getAllAgents()
                             if (agentsRes.success) {
-                                val myAgent = agentsRes.data.find { it.userId == user.id }
+                                val myAgent = agentsRes.data?.find { it.userId == user.id }
                                 if (myAgent != null) {
                                     MockData.currentAgentId = myAgent.id
                                 }

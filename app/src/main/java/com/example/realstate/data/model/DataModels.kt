@@ -1,16 +1,16 @@
 package com.example.realstate.data.model
 
-data class BaseResponse<T>(
+data class BaseResponse<T : Any>(
     val success: Boolean,
     val message: String,
-    val data: T
+    val data: T? = null
 )
 
-data class AuthResponse<T>(
+data class AuthResponse<T : Any>(
     val success: Boolean,
     val message: String,
     val token: String? = null,
-    val data: T
+    val data: T? = null
 )
 
 data class PropertyDto(

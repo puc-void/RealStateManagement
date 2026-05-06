@@ -46,16 +46,15 @@ fun UserDetailScreen(
                 user = response.data
                 if (user?.role?.uppercase() == "AGENT") {
                     // Try to find the agent record for this user
-                    val agentsResponse = RetrofitClient.agentApi.getAllAgents()
-                    if (agentsResponse.success) {
-                        val agent = agentsResponse.data.find { it.userId == userId }
+                    val agentsRes = RetrofitClient.agentApi.getAllAgents()
+                    if (agentsRes.success) {
+                        val agent = agentsRes.data?.find { it.userId == userId }
                         agentInfo = agent
-                        if (agent != null) {
-                            val propsResponse = RetrofitClient.propertyApi.getPropertiesByAgent(agent.id)
-                            if (propsResponse.success) {
-                                agentProperties = propsResponse.data
-                            }
-                        }
+                    }
+                    
+                    val propertiesRes = RetrofitClient.propertyApi.getAllProperties()
+                    if (propertiesRes.success) {
+                        agentProperties = propertiesRes.data?.filter { it.agentId == agentInfo?.id } ?: emptyList()
                     }
                 }
             } else {

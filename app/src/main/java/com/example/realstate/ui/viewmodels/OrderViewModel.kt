@@ -30,8 +30,8 @@ class OrderViewModel : ViewModel() {
                 val boughtResponse = RetrofitClient.soldPropertyApi.getSoldPropertiesByUser(userId)
                 
                 _uiState.update { it.copy(
-                    bookedProperties = if (bookedResponse.success) bookedResponse.data else emptyList(),
-                    boughtProperties = if (boughtResponse.success) boughtResponse.data else emptyList(),
+                    bookedProperties = if (bookedResponse.success) bookedResponse.data ?: emptyList() else emptyList(),
+                    boughtProperties = if (boughtResponse.success) boughtResponse.data ?: emptyList() else emptyList(),
                     isLoading = false
                 ) }
             } catch (e: Exception) {
@@ -52,10 +52,10 @@ class OrderViewModel : ViewModel() {
                     "amount" to booking.proposedAmount
                 )
                 val response = RetrofitClient.soldPropertyApi.addSoldProperty(body)
-                if (response.success) {
+                if (response?.success == true) {
                     fetchOrders(booking.userId)
                 } else {
-                    _uiState.update { it.copy(isLoading = false, error = response.message) }
+                    _uiState.update { it.copy(isLoading = false, error = response?.message) }
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
