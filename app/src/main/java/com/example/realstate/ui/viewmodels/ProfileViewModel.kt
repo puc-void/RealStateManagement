@@ -21,7 +21,6 @@ data class ProfileUiState(
     val reviews: List<com.example.realstate.data.model.ReviewDto> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val successMessage: String? = null,
     val isOtpSent: Boolean = false,
     val userId: String = "",
     val isUploadingImage: Boolean = false
@@ -104,6 +103,7 @@ class ProfileViewModel : ViewModel() {
                 )
                 val response = RetrofitClient.reviewApi.updateReview(reviewId, body)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Review updated successfully")
                     loadProfileData()
                 }
             } catch (e: Exception) {
@@ -117,6 +117,7 @@ class ProfileViewModel : ViewModel() {
             try {
                 val response = RetrofitClient.reviewApi.deleteReview(reviewId)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Review deleted")
                     loadProfileData()
                 }
             } catch (e: Exception) {
@@ -144,7 +145,8 @@ class ProfileViewModel : ViewModel() {
                         location = response.data?.address ?: MockData.currentUser.location
                     )
                     loadProfileData()
-                    _uiState.update { it.copy(isLoading = false, successMessage = "Profile updated successfully!") }
+                    com.example.realstate.utils.NotificationManager.showNotification("Profile updated successfully!")
+                    _uiState.update { it.copy(isLoading = false) }
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
                 }
@@ -189,11 +191,12 @@ class ProfileViewModel : ViewModel() {
 
     fun changeEmail(newEmail: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null, successMessage = null, isOtpSent = false) }
+            _uiState.update { it.copy(isLoading = true, error = null, isOtpSent = false) }
             try {
                 val response = RetrofitClient.authApi.changeEmail(userId, mapOf("email" to newEmail))
                 if (response.success) {
-                    _uiState.update { it.copy(isLoading = false, isOtpSent = true, successMessage = response.message) }
+                    com.example.realstate.utils.NotificationManager.showNotification(response.message ?: "OTP sent")
+                    _uiState.update { it.copy(isLoading = false, isOtpSent = true) }
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
                 }
@@ -205,7 +208,7 @@ class ProfileViewModel : ViewModel() {
 
     fun verifyNewEmail(otp: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null, successMessage = null) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val response = RetrofitClient.verificationApi.verifyEmail(userId, mapOf("otp" to otp))
                 if (response.success) {
@@ -213,7 +216,8 @@ class ProfileViewModel : ViewModel() {
                     if (meResponse.success) {
                         MockData.currentUser = MockData.currentUser.copy(email = meResponse.data?.email ?: MockData.currentUser.email)
                     }
-                    _uiState.update { it.copy(isLoading = false, isOtpSent = false, successMessage = "Email successfully verified and updated!") }
+                    com.example.realstate.utils.NotificationManager.showNotification("Email successfully verified and updated!")
+                    _uiState.update { it.copy(isLoading = false, isOtpSent = false) }
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
                 }
@@ -225,14 +229,15 @@ class ProfileViewModel : ViewModel() {
 
     fun updatePassword(currentPassword: String, newPassword: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null, successMessage = null) }
+            _uiState.update { it.copy(isLoading = true, error = null) }
             try {
                 val response = RetrofitClient.authApi.updatePassword(
                     userId,
                     mapOf("password" to currentPassword, "newPassword" to newPassword)
                 )
                 if (response.success) {
-                    _uiState.update { it.copy(isLoading = false, successMessage = response.message ?: "Password updated successfully!") }
+                    com.example.realstate.utils.NotificationManager.showNotification(response.message ?: "Password updated successfully!")
+                    _uiState.update { it.copy(isLoading = false) }
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
                 }
@@ -243,7 +248,7 @@ class ProfileViewModel : ViewModel() {
     }
 
     fun clearMessages() {
-        _uiState.update { it.copy(error = null, successMessage = null) }
+        _uiState.update { it.copy(error = null) }
     }
 }
 

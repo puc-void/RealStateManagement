@@ -1,7 +1,6 @@
 # Add project specific ProGuard rules here.
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.
-#
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
@@ -19,3 +18,28 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Retrofit
+-dontnote retrofit2.**
+-keep class retrofit2.** { *; }
+-keepattributes Signature
+-keepattributes Exceptions
+-keepclasseswithmembers class * {
+    @retrofit2.http.* <methods>;
+}
+
+# Gson
+-keep class sun.misc.Unsafe { *; }
+-keep class com.google.gson.** { *; }
+-keepclassmembers class * implements java.io.Serializable {
+    static final long serialVersionUID;
+    private static final java.io.ObjectStreamField[] serialPersistentFields;
+    private void writeObject(java.io.ObjectOutputStream);
+    private void readObject(java.io.ObjectInputStream);
+    java.lang.Object writeReplace();
+    java.lang.Object readResolve();
+}
+
+# Keep data models so Gson can deserialize network responses
+-keep class com.example.realstate.data.** { *; }
+-keep class com.example.realstate.data.model.** { *; }

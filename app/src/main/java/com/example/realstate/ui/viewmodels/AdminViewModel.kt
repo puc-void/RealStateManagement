@@ -24,7 +24,8 @@ data class AdminUiState(
     val selectedFilter: String = "All",
     val users: List<com.example.realstate.data.model.UserDto> = emptyList(),
     val agents: List<com.example.realstate.data.model.AgentDetailDto> = emptyList(),
-    val soldProperties: List<com.example.realstate.data.model.SoldPropertyDto> = emptyList()
+    val soldProperties: List<com.example.realstate.data.model.SoldPropertyDto> = emptyList(),
+    val notifications: List<com.example.realstate.data.model.NotificationDto> = emptyList()
 )
 
 class AdminViewModel : ViewModel() {
@@ -46,6 +47,7 @@ class AdminViewModel : ViewModel() {
                 val usersDeferred = async { RetrofitClient.userApi.getAllUsers() }
                 val agentsDeferred = async { RetrofitClient.agentApi.getAllAgents() }
                 val soldPropertiesDeferred = async { RetrofitClient.soldPropertyApi.getAllSoldProperties() }
+                val notificationsDeferred = async { RetrofitClient.notificationApi.getAllNotifications() }
                 
                 // Await all and handle results safely
                 val propertiesResponse = try { propertiesDeferred.await() } catch (e: Exception) { null }
@@ -54,6 +56,7 @@ class AdminViewModel : ViewModel() {
                 val usersResponse = try { usersDeferred.await() } catch (e: Exception) { null }
                 val agentsResponse = try { agentsDeferred.await() } catch (e: Exception) { null }
                 val soldPropertiesResponse = try { soldPropertiesDeferred.await() } catch (e: Exception) { null }
+                val notificationsResponse = try { notificationsDeferred.await() } catch (e: Exception) { null }
 
                 if (propertiesResponse != null && propertiesResponse.success && propertiesResponse.data != null) {
                     val props = propertiesResponse.data.map { dto ->
@@ -97,6 +100,7 @@ class AdminViewModel : ViewModel() {
                     val users = if (usersResponse != null && usersResponse.success) usersResponse.data ?: emptyList() else emptyList()
                     val agents = if (agentsResponse != null && agentsResponse.success) agentsResponse.data ?: emptyList() else emptyList()
                     val soldProperties = if (soldPropertiesResponse != null && soldPropertiesResponse.success) soldPropertiesResponse.data ?: emptyList() else emptyList()
+                    val notifications = if (notificationsResponse != null && notificationsResponse.success) notificationsResponse.data ?: emptyList() else emptyList()
 
                     _uiState.update { it.copy(
                         properties = props,
@@ -107,6 +111,7 @@ class AdminViewModel : ViewModel() {
                         users = users,
                         agents = agents,
                         soldProperties = soldProperties,
+                        notifications = notifications,
                         isLoading = false
                     ) }
                 } else {
@@ -127,6 +132,7 @@ class AdminViewModel : ViewModel() {
             try {
                 val response = RetrofitClient.propertyApi.deleteProperty(propertyId)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Property deleted")
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(error = response.message) }
@@ -157,6 +163,7 @@ class AdminViewModel : ViewModel() {
                 )
                 val response = RetrofitClient.propertyApi.addProperty(propertyMap)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Property added successfully")
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
@@ -173,6 +180,7 @@ class AdminViewModel : ViewModel() {
             try {
                 val response = RetrofitClient.propertyApi.updateProperty(id, mapOf("isVerified" to true))
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Property approved")
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
@@ -201,6 +209,7 @@ class AdminViewModel : ViewModel() {
                 )
                 val response = RetrofitClient.propertyApi.updateProperty(id, propertyMap)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Property updated")
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
@@ -217,6 +226,7 @@ class AdminViewModel : ViewModel() {
                 val newStatus = if (currentStatus == "active") "suspended" else "active"
                 val response = RetrofitClient.userApi.updateUserStatus(userId, mapOf("status" to newStatus))
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("User status updated")
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(error = response.message) }
@@ -236,6 +246,7 @@ class AdminViewModel : ViewModel() {
             try {
                 val response = RetrofitClient.reviewApi.deleteReview(reviewId)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Review deleted")
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(error = response.message) }
@@ -258,6 +269,7 @@ class AdminViewModel : ViewModel() {
             try {
                 val response = RetrofitClient.userApi.deleteUser(userId)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("User deleted")
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
@@ -282,6 +294,7 @@ class AdminViewModel : ViewModel() {
                 )
                 val response = RetrofitClient.userApi.updateProfile(userId, updateMap)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("User updated")
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
@@ -302,6 +315,7 @@ class AdminViewModel : ViewModel() {
             try {
                 val response = RetrofitClient.agentApi.verifyAgent(agentId, mapOf("isVerified" to true))
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Agent verified")
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
@@ -312,12 +326,15 @@ class AdminViewModel : ViewModel() {
         }
     }
 
-    fun markAgentFraud(agentId: String) {
+    fun toggleAgentFraud(agentId: String, currentStatus: Boolean) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val response = RetrofitClient.agentApi.markAgentFraud(agentId, mapOf("isFraud" to true))
+                val newStatus = !currentStatus
+                val response = RetrofitClient.agentApi.markAgentFraud(agentId, mapOf("isFraud" to newStatus))
                 if (response.success) {
+                    val msg = if (newStatus) "Agent marked as fraud" else "Agent marked as not fraud"
+                    com.example.realstate.utils.NotificationManager.showNotification(msg)
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
@@ -338,6 +355,7 @@ class AdminViewModel : ViewModel() {
             try {
                 val response = RetrofitClient.agentApi.deleteAgent(agentId)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Agent deleted")
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }

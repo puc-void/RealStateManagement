@@ -149,7 +149,8 @@ class AuthViewModel : ViewModel() {
                 }
                 _state.update { AuthState.Error(errorMsg) }
             } catch (e: Exception) {
-                _state.update { AuthState.Error("Connection error. Please check your internet.") }
+                e.printStackTrace()
+                _state.update { AuthState.Error("Connection error: ${e.message}") }
             }
         }
     }
@@ -179,7 +180,8 @@ class AuthViewModel : ViewModel() {
                 }
                 _state.update { AuthState.Error(errorMsg) }
             } catch (e: Exception) {
-                _state.update { AuthState.Error("Connection error. Please check your internet.") }
+                e.printStackTrace()
+                _state.update { AuthState.Error("Connection error: ${e.message}") }
             }
         }
     }
@@ -251,7 +253,8 @@ class AuthViewModel : ViewModel() {
                 }
                 _state.update { AuthState.Error(errorMsg) }
             } catch (e: Exception) {
-                _state.update { AuthState.Error("Connection error. Please check your internet.") }
+                e.printStackTrace()
+                _state.update { AuthState.Error("Connection error: ${e.message}") }
             }
         }
     }

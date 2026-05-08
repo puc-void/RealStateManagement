@@ -20,7 +20,6 @@ data class DetailUiState(
     val isWishlisted: Boolean = false,
     val isLoading: Boolean = false,
     val error: String? = null,
-    val successMessage: String? = null,
     val userRole: UserRole = MockData.currentUser.role,
     val userId: String = ""
 )
@@ -63,6 +62,25 @@ class DetailViewModel : ViewModel() {
 
                 if (propResponse.success && propResponse.data != null) {
                     val dto = propResponse.data
+                    
+                    var agentName = dto.agent?.user?.name
+                    var agentPic = dto.agent?.user?.image
+                    var agentUserId = dto.agent?.userId ?: ""
+
+                    // Fallback: If agent object is missing, fetch agent details separately
+                    if (agentName == null && dto.agentId.isNotEmpty()) {
+                        try {
+                            val agentResponse = RetrofitClient.agentApi.getAgentDetails(dto.agentId)
+                            if (agentResponse.success && agentResponse.data != null) {
+                                agentName = agentResponse.data.user?.name
+                                agentPic = agentResponse.data.user?.image
+                                agentUserId = agentResponse.data.userId ?: ""
+                            }
+                        } catch (e: Exception) {
+                            // Ignore fallback failure
+                        }
+                    }
+
                     val property = Property(
                         id = dto.id.toString(),
                         title = dto.title,
@@ -74,11 +92,12 @@ class DetailViewModel : ViewModel() {
                         beds = 1,
                         baths = 1,
                         area = "TBD",
-                        agentName = dto.agent?.user?.name ?: "Verified Agent",
-                        agentPicUrl = if (dto.agent?.user?.image?.startsWith("data:") == true) "https://i.pravatar.cc/150"
-                                      else dto.agent?.user?.image ?: "https://i.pravatar.cc/150",
+                        agentName = agentName ?: "Verified Agent",
+                        agentPicUrl = if (agentPic?.startsWith("data:") == true) "https://i.pravatar.cc/150"
+                                      else agentPic ?: "https://i.pravatar.cc/150",
                         amenities = emptyList(),
-                        agentId = dto.agentId
+                        agentId = dto.agentId,
+                        agentUserId = agentUserId
                     )
                     
                     val reviews = if (reviewsResponse.success) reviewsResponse.data ?: emptyList() else emptyList()
@@ -104,21 +123,9 @@ class DetailViewModel : ViewModel() {
     fun toggleWishlist(propertyId: String, agentId: String) {
         viewModelScope.launch {
             val success = WishlistRepository.toggleWishlist(propertyId, agentId)
-            if (success) {
-                val msg = if (_uiState.value.isWishlisted) "Removed from wishlist" else "Added to wishlist!"
-                _uiState.update { it.copy(successMessage = msg) }
-                clearSuccessMessage()
-            } else {
+            if (!success) {
                 _uiState.update { it.copy(error = "Action failed.") }
             }
-        }
-    }
-
-
-    fun clearSuccessMessage() {
-        viewModelScope.launch {
-            kotlinx.coroutines.delay(3000)
-            _uiState.update { it.copy(successMessage = null) }
         }
     }
 
@@ -133,7 +140,7 @@ class DetailViewModel : ViewModel() {
                 )
                 val response = RetrofitClient.reviewApi.addReview(body)
                 if (response.success) {
-                    _uiState.update { it.copy(successMessage = "Review added successfully!") }
+                    com.example.realstate.utils.NotificationManager.showNotification("Review added successfully!")
                     loadProperty(propertyId.toString())
                 }
             } catch (e: Exception) {
@@ -151,7 +158,7 @@ class DetailViewModel : ViewModel() {
                 )
                 val response = RetrofitClient.reviewApi.updateReview(reviewId, body)
                 if (response.success) {
-                    _uiState.update { it.copy(successMessage = "Review updated successfully!") }
+                    com.example.realstate.utils.NotificationManager.showNotification("Review updated successfully!")
                     _uiState.value.property?.id?.let { loadProperty(it) }
                 }
             } catch (e: Exception) {
@@ -165,6 +172,7 @@ class DetailViewModel : ViewModel() {
             try {
                 val response = RetrofitClient.reviewApi.deleteReview(reviewId)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Review deleted")
                     _uiState.value.property?.id?.let { loadProperty(it) }
                 }
             } catch (e: Exception) {
@@ -184,11 +192,18 @@ class DetailViewModel : ViewModel() {
                 )
                 val response = RetrofitClient.bookedPropertyApi.bookProperty(body)
                 if (response.success) {
-                    _uiState.update { it.copy(successMessage = "Booking request sent successfully!") }
-                    // Clear message after 3 seconds
-                    viewModelScope.launch {
-                        kotlinx.coroutines.delay(3000)
-                        _uiState.update { it.copy(successMessage = null) }
+                    com.example.realstate.utils.NotificationManager.showNotification("Booking request sent successfully!")
+                    val prop = _uiState.value.property
+                    if (prop != null && prop.agentUserId.isNotEmpty()) {
+                        RetrofitClient.notificationApi.addNotification(
+                            mapOf(
+                                "title" to "New Booking Request",
+                                "message" to "A user has requested to book your property: ${prop.title}",
+                                "userId" to prop.agentUserId,
+                                "receiverId" to prop.agentUserId,
+                                "receiverRole" to "AGENT"
+                            )
+                        )
                     }
                 }
             } catch (e: Exception) {

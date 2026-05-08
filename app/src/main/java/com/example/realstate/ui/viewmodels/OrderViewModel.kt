@@ -53,6 +53,7 @@ class OrderViewModel : ViewModel() {
                 )
                 val response = RetrofitClient.soldPropertyApi.addSoldProperty(body)
                 if (response?.success == true) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Purchase confirmed successfully!")
                     fetchOrders(booking.userId)
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response?.message) }

@@ -12,6 +12,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Box
 import com.example.realstate.ui.screens.DetailScreen
 import com.example.realstate.ui.screens.LoginScreen
 import com.example.realstate.ui.screens.MainScreen
@@ -20,7 +23,7 @@ import com.example.realstate.ui.screens.SignUpScreen
 import com.example.realstate.ui.screens.WishlistItemDetailScreen
 import com.example.realstate.ui.viewmodels.AuthViewModel
 
-private const val TRANSITION_DURATION = 200
+private const val TRANSITION_DURATION = 150
 
 @Composable
 fun AppNavigation() {
@@ -43,9 +46,10 @@ fun AppNavigation() {
         "main"
     } else "login"
 
-    NavHost(
-        navController = navController,
-        startDestination = startDest,
+    Box(modifier = Modifier.fillMaxSize()) {
+        NavHost(
+            navController = navController,
+            startDestination = startDest,
         enterTransition = {
             fadeIn(tween(TRANSITION_DURATION)) +
                 slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(TRANSITION_DURATION))
@@ -160,4 +164,7 @@ fun AppNavigation() {
             )
         }
     }
+    // Global overlay for notifications
+    com.example.realstate.ui.components.GlobalNotificationSystem()
+}
 }

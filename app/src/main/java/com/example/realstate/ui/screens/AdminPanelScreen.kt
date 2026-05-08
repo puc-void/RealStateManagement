@@ -248,7 +248,7 @@ fun AdminPanelScreen(
                     agent = agent,
                     onClick = { onNavigateToUserDetail(agent.userId) },
                     onVerify = { viewModel.verifyAgent(agent.id) },
-                    onMarkFraud = { viewModel.markAgentFraud(agent.id) },
+                    onMarkFraud = { viewModel.toggleAgentFraud(agent.id, agent.isFraud ?: false) },
                     onDelete = { viewModel.deleteAgent(agent.id) }
                 )
             }
@@ -430,16 +430,22 @@ fun AdminMapOverview(properties: List<com.example.realstate.data.Property>) {
     val markers = remember { mutableStateListOf<Pair<LatLng, String>>() }
     
     LaunchedEffect(properties) {
-        markers.clear()
-        properties.forEach { property ->
-            try {
-                @Suppress("DEPRECATION")
-                val addresses = geocoder.getFromLocationName(property.location, 1)
-                if (!addresses.isNullOrEmpty()) {
-                    markers.add(LatLng(addresses[0].latitude, addresses[0].longitude) to property.title)
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            val newMarkers = mutableListOf<Pair<LatLng, String>>()
+            properties.forEach { property ->
+                try {
+                    @Suppress("DEPRECATION")
+                    val addresses = geocoder.getFromLocationName(property.location, 1)
+                    if (!addresses.isNullOrEmpty()) {
+                        newMarkers.add(LatLng(addresses[0].latitude, addresses[0].longitude) to property.title)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
+            }
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                markers.clear()
+                markers.addAll(newMarkers)
             }
         }
     }
@@ -517,6 +523,21 @@ fun AgentManagementCard(
                     }
                     Text(user?.email ?: "", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+                if (agent.isFraud == true) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(4.dp),
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Text(
+                            "FRAUD",
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             }
             Row {
                 if (agent.isVerified != true) {
@@ -524,10 +545,12 @@ fun AgentManagementCard(
                         Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF10B981))
                     }
                 }
-                if (agent.isFraud != true) {
-                    IconButton(onClick = onMarkFraud) {
-                        Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error)
-                    }
+                IconButton(onClick = onMarkFraud) {
+                    Icon(
+                        if (agent.isFraud == true) Icons.Default.GppGood else Icons.Default.GppBad,
+                        null,
+                        tint = if (agent.isFraud == true) Color(0xFF10B981) else MaterialTheme.colorScheme.error
+                    )
                 }
                 IconButton(onClick = onDelete) {
                     Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error)

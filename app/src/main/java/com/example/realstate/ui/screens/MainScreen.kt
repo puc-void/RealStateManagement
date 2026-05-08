@@ -31,6 +31,7 @@ import com.example.realstate.data.UserRole
 import com.example.realstate.ui.viewmodels.HomeViewModel
 import kotlinx.coroutines.launch
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.realstate.ui.viewmodels.NotificationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +44,9 @@ fun MainScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val homeViewModel: HomeViewModel = viewModel()
+    val notificationViewModel: NotificationViewModel = viewModel()
     val user by MockData.currentUserFlow.collectAsState()
+    val notifUiState by notificationViewModel.uiState.collectAsState()
     
     val navItems = remember(user.role) {
         when (user.role) {
@@ -51,15 +54,18 @@ fun MainScreen(
                 BottomNavItem("home", "Home", Icons.Default.Home),
                 BottomNavItem("wishlist", "Wishlist", Icons.Default.Favorite),
                 BottomNavItem("orders", "Orders", Icons.Default.List),
+                BottomNavItem("notifications", "Notifications", Icons.Default.Notifications),
                 BottomNavItem("profile", "Profile", Icons.Default.Person)
             )
             
             UserRole.AGENT -> listOf(
                 BottomNavItem("agent_dashboard", "Dashboard", Icons.Default.Dashboard),
+                BottomNavItem("notifications", "Notifications", Icons.Default.Notifications),
                 BottomNavItem("profile", "Profile", Icons.Default.Person)
             )
             UserRole.ADMIN -> listOf(
                 BottomNavItem("admin_dashboard", "Admin", Icons.Default.AdminPanelSettings),
+                BottomNavItem("notifications", "Notifications", Icons.Default.Notifications),
                 BottomNavItem("profile", "Profile", Icons.Default.Person)
             )
         }
@@ -169,11 +175,27 @@ fun MainScreen(
                                 val selected = currentRoute == item.route
                                 NavigationBarItem(
                                     icon = { 
-                                        Icon(
-                                            item.icon, 
-                                            contentDescription = item.label,
-                                            tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                                        ) 
+                                        if (item.route == "notifications" && notifUiState.unreadCount > 0) {
+                                            BadgedBox(
+                                                badge = {
+                                                    Badge(containerColor = MaterialTheme.colorScheme.error) {
+                                                        Text("${notifUiState.unreadCount}")
+                                                    }
+                                                }
+                                            ) {
+                                                Icon(
+                                                    item.icon, 
+                                                    contentDescription = item.label,
+                                                    tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                        } else {
+                                            Icon(
+                                                item.icon, 
+                                                contentDescription = item.label,
+                                                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                            ) 
+                                        }
                                     },
                                     label = { 
                                         Text(
@@ -188,6 +210,9 @@ fun MainScreen(
                                         indicatorColor = MaterialTheme.colorScheme.primaryContainer
                                     ),
                                     onClick = {
+                                        if (item.route == "notifications") {
+                                            notificationViewModel.markAllAsRead()
+                                        }
                                         navController.navigate(item.route) {
                                             popUpTo(navController.graph.findStartDestination().id) {
                                                 saveState = true
@@ -240,6 +265,17 @@ fun MainScreen(
                         onNavigateToDetail = onNavigateToDetail,
                         onNavigateToUserDetail = { userId ->
                             navController.navigate("user_detail/$userId")
+                        }
+                    )
+                }
+                composable("notifications") {
+                    NotificationScreen(
+                        onNotificationClick = {
+                            if (user.role == UserRole.AGENT) {
+                                navController.navigate("agent_dashboard")
+                            } else if (user.role == UserRole.USER) {
+                                navController.navigate("orders")
+                            }
                         }
                     )
                 }

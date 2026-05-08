@@ -163,3 +163,17 @@ interface SoldPropertyApiService {
     @POST("sold-property")
     suspend fun addSoldProperty(@Body body: Map<String, @JvmSuppressWildcards Any>): BaseResponse<SoldPropertyDto>
 }
+
+interface NotificationApiService {
+    @GET("notification")
+    suspend fun getAllNotifications(): BaseResponse<List<NotificationDto>>
+
+    @GET("notification/user/{userId}")
+    suspend fun getNotificationsByUserId(@Path("userId") userId: String): BaseResponse<List<NotificationDto>>
+
+    @DELETE("notification/{id}")
+    suspend fun deleteNotification(@Path("id") id: String): BaseResponse<NotificationDto>
+
+    @POST("notification")
+    suspend fun addNotification(@Body body: Map<String, @JvmSuppressWildcards Any>): BaseResponse<NotificationDto>
+}

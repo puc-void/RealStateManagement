@@ -123,3 +123,12 @@ data class SoldPropertyDto(
     val agent: AgentDto? = null,
     val user: UserDto? = null
 )
+
+data class NotificationDto(
+    val id: String,
+    val title: String,
+    val message: String,
+    val receiverId: String? = null,
+    val receiverRole: String? = null,
+    val generatedAt: String? = null
+)

@@ -43,21 +43,6 @@ fun AgentDashboardScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     
-    if (uiState.notification != null) {
-        AlertDialog(
-            onDismissRequest = { viewModel.clearNotification() },
-            title = { Text("Notification", fontWeight = FontWeight.Bold) },
-            text = { Text(uiState.notification ?: "") },
-            confirmButton = {
-                TextButton(onClick = { viewModel.clearNotification() }) {
-                    Text("OK")
-                }
-            },
-            shape = RoundedCornerShape(16.dp),
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    }
-
     val agentName = MockData.currentUser.name
     
     LaunchedEffect(Unit) {
@@ -243,16 +228,22 @@ fun AgentDashboardScreen(
                     val markers = remember { mutableStateListOf<Pair<LatLng, String>>() }
                     
                     LaunchedEffect(uiState.properties) {
-                        markers.clear()
-                        uiState.properties.forEach { property ->
-                            try {
-                                @Suppress("DEPRECATION")
-                                val addresses = geocoder.getFromLocationName(property.location, 1)
-                                if (!addresses.isNullOrEmpty()) {
-                                    markers.add(LatLng(addresses[0].latitude, addresses[0].longitude) to property.title)
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            val newMarkers = mutableListOf<Pair<LatLng, String>>()
+                            uiState.properties.forEach { property ->
+                                try {
+                                    @Suppress("DEPRECATION")
+                                    val addresses = geocoder.getFromLocationName(property.location, 1)
+                                    if (!addresses.isNullOrEmpty()) {
+                                        newMarkers.add(LatLng(addresses[0].latitude, addresses[0].longitude) to property.title)
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
                                 }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
+                            }
+                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                markers.clear()
+                                markers.addAll(newMarkers)
                             }
                         }
                     }

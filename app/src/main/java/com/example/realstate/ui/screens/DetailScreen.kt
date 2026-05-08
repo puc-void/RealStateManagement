@@ -63,20 +63,7 @@ fun DetailScreen(
     var showBookingDialog by remember { mutableStateOf(false) }
     var reviewToEdit by remember { mutableStateOf<ReviewDto?>(null) }
     
-    if (uiState.successMessage != null) {
-        AlertDialog(
-            onDismissRequest = { detailViewModel.clearSuccessMessage() },
-            title = { Text("Success", fontWeight = FontWeight.Bold) },
-            text = { Text(uiState.successMessage ?: "") },
-            confirmButton = {
-                TextButton(onClick = { detailViewModel.clearSuccessMessage() }) {
-                    Text("OK")
-                }
-            },
-            shape = RoundedCornerShape(16.dp),
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    }
+
 
     if (showReviewDialog && property != null) {
         ReviewSubmissionDialog(

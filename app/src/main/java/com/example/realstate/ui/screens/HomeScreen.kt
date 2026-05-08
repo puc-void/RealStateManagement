@@ -56,16 +56,22 @@ fun HomeScreen(
     val markers = remember { mutableStateListOf<Pair<LatLng, String>>() }
 
     LaunchedEffect(uiState.filteredProperties) {
-        markers.clear()
-        uiState.filteredProperties.forEach { property ->
-            try {
-                @Suppress("DEPRECATION")
-                val addresses = geocoder.getFromLocationName(property.location, 1)
-                if (!addresses.isNullOrEmpty()) {
-                    markers.add(LatLng(addresses[0].latitude, addresses[0].longitude) to property.title)
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            val newMarkers = mutableListOf<Pair<LatLng, String>>()
+            uiState.filteredProperties.forEach { property ->
+                try {
+                    @Suppress("DEPRECATION")
+                    val addresses = geocoder.getFromLocationName(property.location, 1)
+                    if (!addresses.isNullOrEmpty()) {
+                        newMarkers.add(LatLng(addresses[0].latitude, addresses[0].longitude) to property.title)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
+            }
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                markers.clear()
+                markers.addAll(newMarkers)
             }
         }
     }
@@ -255,21 +261,11 @@ fun HomeScreen(
                 } else {
                     itemsIndexed(uiState.filteredProperties) { index, property ->
                         val isWishlisted = uiState.wishlistedPropertyIds.contains(property.id)
-                        val infiniteTransition = rememberInfiniteTransition(label = "listAnim")
-                        val slideAnim by infiniteTransition.animateFloat(
-                            initialValue = 100f,
-                            targetValue = 0f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(1000, easing = LinearOutSlowInEasing),
-                                repeatMode = RepeatMode.Restart
-                            ),
-                            label = "slide"
-                        )
-
+                        val delay = kotlin.math.min(index, 10) * 50
                         AnimatedVisibility(
                             visible = true,
-                            enter = fadeIn(animationSpec = tween(600, delayMillis = index * 80)) + 
-                                    slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(600, delayMillis = index * 80))
+                            enter = fadeIn(animationSpec = tween(400, delayMillis = delay)) + 
+                                    slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(400, delayMillis = delay))
                         ) {
                             PropertyListItem(
                                 property = property, 

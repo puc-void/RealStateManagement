@@ -23,7 +23,6 @@ data class AgentUiState(
     var error: String? = null,
     val activeBookingsCount: Int = 0,
     val selectedFilter: String = "All",
-    val notification: String? = null,
     val wishlistItems: List<com.example.realstate.data.model.WishlistItemDto> = emptyList(),
     val isUploadingImage: Boolean = false
 )
@@ -100,11 +99,10 @@ class AgentViewModel : ViewModel() {
                     val newWishlistCount = wishlistedItems.size
                     val oldWishlistCount = _uiState.value.wishlistItems.size
 
-                    var notification: String? = null
                     if (newBookingsCount > oldBookingsCount && !_uiState.value.isLoading) {
-                        notification = "New booking request from ${bookings.lastOrNull()?.user?.name ?: "a user"}!"
+                        // com.example.realstate.utils.NotificationManager.showNotification("New booking request from ${bookings.lastOrNull()?.user?.name ?: "a user"}!")
                     } else if (newWishlistCount > oldWishlistCount && !_uiState.value.isLoading) {
-                        notification = "Someone added your property to their wishlist!"
+                        // com.example.realstate.utils.NotificationManager.showNotification("Someone added your property to their wishlist!")
                     }
 
                     _uiState.update {
@@ -115,16 +113,8 @@ class AgentViewModel : ViewModel() {
                             bookings = bookings,
                             activeBookingsCount = bookings.count { !it.isSold },
                             wishlistItems = wishlistedItems,
-                            notification = notification,
                             isLoading = false
                         )
-                    }
-                    // Clear notification after 5s
-                    if (notification != null) {
-                        viewModelScope.launch {
-                            kotlinx.coroutines.delay(5000)
-                            _uiState.update { it.copy(notification = null) }
-                        }
                     }
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
@@ -144,6 +134,7 @@ class AgentViewModel : ViewModel() {
             try {
                 val response = RetrofitClient.propertyApi.deleteProperty(propertyId)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Property deleted successfully")
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(error = response.message) }
@@ -160,6 +151,11 @@ class AgentViewModel : ViewModel() {
         title: String, description: String, imageUrl: String, 
         location: String, priceRange: String, propertyType: String
     ) {
+        if (agentId.isBlank()) {
+            com.example.realstate.utils.NotificationManager.showNotification("Error: Agent profile not found. Please log out and log in again.")
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
@@ -174,11 +170,14 @@ class AgentViewModel : ViewModel() {
                 )
                 val response = RetrofitClient.propertyApi.addProperty(propertyMap)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Property added successfully")
                     refreshDashboard()
                 } else {
+                    com.example.realstate.utils.NotificationManager.showNotification("Failed to add property: ${response.message}")
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
                 }
             } catch (e: Exception) {
+                com.example.realstate.utils.NotificationManager.showNotification("Error: ${e.message}")
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
         }
@@ -202,11 +201,12 @@ class AgentViewModel : ViewModel() {
                 )
                 val response = RetrofitClient.propertyApi.updateProperty(id, propertyMap)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Property updated successfully")
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
                 }
-            } catch (e: Exception) {
+            } catch (e: Exception) { 
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
         }
@@ -233,7 +233,20 @@ class AgentViewModel : ViewModel() {
                     )
                 )
                 if (response.success) {
-                    _uiState.update { it.copy(notification = "Booking accepted successfully!") }
+                    com.example.realstate.utils.NotificationManager.showNotification("Booking accepted successfully!")
+                    try {
+                        RetrofitClient.notificationApi.addNotification(
+                            mapOf(
+                                "title" to "Booking Accepted",
+                                "message" to "Your booking request for ${booking.property?.title ?: "a property"} has been accepted.",
+                                "userId" to booking.userId,
+                                "receiverId" to booking.userId,
+                                "receiverRole" to "USER"
+                            )
+                        )
+                    } catch (e: Exception) {
+                        // ignore if notification fails
+                    }
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
@@ -250,7 +263,7 @@ class AgentViewModel : ViewModel() {
             try {
                 val response = RetrofitClient.bookedPropertyApi.deleteBookedProperty(bookingId.toString())
                 if (response.success) {
-                    _uiState.update { it.copy(notification = "Booking rejected and removed.") }
+                    com.example.realstate.utils.NotificationManager.showNotification("Booking rejected and removed.")
                     refreshDashboard()
                 } else {
                     _uiState.update { it.copy(isLoading = false, error = response.message) }
@@ -263,10 +276,6 @@ class AgentViewModel : ViewModel() {
 
     fun setFilter(filter: String) {
         _uiState.update { it.copy(selectedFilter = filter) }
-    }
-
-    fun clearNotification() {
-        _uiState.update { it.copy(notification = null) }
     }
 
     suspend fun uploadImageToImgBB(context: android.content.Context, uri: android.net.Uri, apiKey: String): String? {

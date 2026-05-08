@@ -92,11 +92,11 @@ fun ProfileScreen(
         }
     }
 
-    if (uiState.error != null || uiState.successMessage != null) {
+    if (uiState.error != null) {
         AlertDialog(
             onDismissRequest = { viewModel.clearMessages() },
-            title = { Text(if (uiState.error != null) "Error" else "Success", fontWeight = FontWeight.Bold) },
-            text = { Text(uiState.error ?: uiState.successMessage ?: "") },
+            title = { Text("Error", fontWeight = FontWeight.Bold) },
+            text = { Text(uiState.error ?: "") },
             confirmButton = {
                 TextButton(onClick = { viewModel.clearMessages() }) {
                     Text("OK")

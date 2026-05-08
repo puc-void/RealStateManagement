@@ -19,7 +19,8 @@ data class Property(
     val amenities: List<String> = emptyList(),
     val agentName: String = "John Doe",
     val agentPicUrl: String = "https://i.pravatar.cc/150?img=12",
-    val agentId: String = ""
+    val agentId: String = "",
+    val agentUserId: String = ""
 )
 
 data class Order(

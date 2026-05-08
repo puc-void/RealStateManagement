@@ -1,9 +1,14 @@
 package com.example.realstate.ui.components
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -126,13 +131,15 @@ fun PropertyLocationMap(
                             durationMs = 800
                         )
                     }
+                    val hasLocationPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
                     GoogleMap(
                         modifier = Modifier.fillMaxSize(),
                         cameraPositionState = cameraPositionState,
+                        properties = MapProperties(isMyLocationEnabled = hasLocationPermission),
                         uiSettings = MapUiSettings(
-                            zoomControlsEnabled = false,
-                            myLocationButtonEnabled = false,
-                            mapToolbarEnabled = false
+                            zoomControlsEnabled = true,
+                            myLocationButtonEnabled = true,
+                            mapToolbarEnabled = true
                         )
                     ) {
                         Marker(
@@ -276,13 +283,16 @@ fun MultiPinMapCard(
                     )
                 }
 
+                val context = LocalContext.current
+                val hasLocationPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 GoogleMap(
                     modifier = Modifier.fillMaxSize(),
                     cameraPositionState = cameraPositionState,
+                    properties = MapProperties(isMyLocationEnabled = hasLocationPermission),
                     uiSettings = MapUiSettings(
                         zoomControlsEnabled = true,
-                        myLocationButtonEnabled = false,
-                        mapToolbarEnabled = false
+                        myLocationButtonEnabled = true,
+                        mapToolbarEnabled = true
                     )
                 ) {
                     markers.forEach { (latLng, title) ->
@@ -315,6 +325,25 @@ fun LocationPickerBottomSheet(
     var pickedAddress by remember { mutableStateOf(initialLocation) }
     var isGeocoding by remember { mutableStateOf(false) }
     var instructionVisible by remember { mutableStateOf(true) }
+
+    var hasLocationPermission by remember { 
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || 
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        ) 
+    }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        hasLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true || 
+                               permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+    }
+
+    LaunchedEffect(Unit) {
+        if (!hasLocationPermission) {
+            permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+        }
+    }
 
     LaunchedEffect(initialLocation) {
         if (initialLocation.isNotBlank()) {
@@ -413,10 +442,11 @@ fun LocationPickerBottomSheet(
                     GoogleMap(
                         modifier = Modifier.fillMaxSize(),
                         cameraPositionState = cameraPositionState,
+                        properties = MapProperties(isMyLocationEnabled = hasLocationPermission),
                         uiSettings = MapUiSettings(
                             zoomControlsEnabled = true,
-                            myLocationButtonEnabled = false,
-                            mapToolbarEnabled = false
+                            myLocationButtonEnabled = true,
+                            mapToolbarEnabled = true
                         ),
                         onMapClick = { latLng ->
                             pickedLatLng = latLng

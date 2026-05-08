@@ -50,6 +50,7 @@ object WishlistRepository {
                 // Remove
                 val response = RetrofitClient.wishlistApi.deleteWishlistItem(existingItem.id)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Removed from wishlist")
                     _wishlistItems.update { list -> list.filter { it.id != existingItem.id } }
                     return true
                 }
@@ -61,6 +62,7 @@ object WishlistRepository {
                 )
                 val response = RetrofitClient.wishlistApi.addWishlistItem(userId, body)
                 if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Added to wishlist")
                     // Refresh fully to get the complete DTO with property info
                     loadWishlist()
                     return true
@@ -76,6 +78,7 @@ object WishlistRepository {
         try {
             val response = RetrofitClient.wishlistApi.deleteWishlistItem(itemId)
             if (response.success) {
+                com.example.realstate.utils.NotificationManager.showNotification("Removed from wishlist")
                 _wishlistItems.update { list -> list.filter { it.id != itemId } }
             }
         } catch (e: Exception) {

@@ -86,4 +86,8 @@ object RetrofitClient {
     val verificationApi: VerificationApiService by lazy {
         retrofit.create(VerificationApiService::class.java)
     }
+
+    val notificationApi: NotificationApiService by lazy {
+        retrofit.create(NotificationApiService::class.java)
+    }
 }

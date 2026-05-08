@@ -133,7 +133,7 @@ fun WishlistScreen(
                             WishlistItemCard(
                                 item = item,
                                 onDelete = { wishlistViewModel.deleteWishlistItem(item.id) },
-                                onClick = { onNavigateToDetail(item.propertyId.toString()) }
+                                onClick = { onNavigateToDetail(item.id) }
                             )
                         }
                     }
