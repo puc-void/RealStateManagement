@@ -41,6 +41,7 @@ import com.example.realstate.data.Property
 import com.example.realstate.ui.components.MultiPinMapCard
 import com.example.realstate.ui.components.ShimmerBox
 import com.example.realstate.ui.viewmodels.HomeViewModel
+import com.example.realstate.ui.viewmodels.SortOption
 import com.google.android.gms.maps.model.LatLng
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -161,6 +162,41 @@ fun HomeScreen(
                             unfocusedBorderColor = Color.Transparent
                         )
                     )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    
+                    var expanded by remember { mutableStateOf(false) }
+                    Box {
+                        IconButton(
+                            onClick = { expanded = true },
+                            modifier = Modifier
+                                .size(56.dp)
+                                .shadow(8.dp, RoundedCornerShape(16.dp), spotColor = MaterialTheme.colorScheme.primary)
+                                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
+                        ) {
+                            Icon(Icons.Default.FilterList, contentDescription = "Filter", tint = Color.White)
+                        }
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                        ) {
+                            SortOption.values().forEach { option ->
+                                DropdownMenuItem(
+                                    text = { 
+                                        Text(
+                                            option.displayName, 
+                                            color = if (uiState.sortOption == option) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                            fontWeight = if (uiState.sortOption == option) FontWeight.Bold else FontWeight.Normal
+                                        ) 
+                                    },
+                                    onClick = {
+                                        homeViewModel.onSortOptionChange(option)
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
@@ -363,6 +399,25 @@ fun FeaturedPropertyCard(
                 )
             }
 
+            if (property.isBought) {
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.Center),
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.Red.copy(alpha = 0.9f),
+                    shadowElevation = 8.dp
+                ) {
+                    Text(
+                        text = "BOOKED",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        color = Color.White,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 20.sp,
+                        letterSpacing = 2.sp
+                    )
+                }
+            }
+
             // Bottom Info Card with Glassmorphism feel
             Box(
                 modifier = Modifier
@@ -468,6 +523,23 @@ fun PropertyListItem(
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )
+                }
+                if (property.isBought) {
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.Center),
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color.Red.copy(alpha = 0.9f)
+                    ) {
+                        Text(
+                            text = "BOOKED",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            color = Color.White,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 12.sp,
+                            letterSpacing = 1.sp
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.width(16.dp))

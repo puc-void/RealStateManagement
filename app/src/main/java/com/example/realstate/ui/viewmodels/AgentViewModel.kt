@@ -76,7 +76,8 @@ class AgentViewModel : ViewModel() {
                             area = "TBD",
                             agentName = MockData.currentUser.name,
                             agentPicUrl = MockData.currentUser.profilePicUrl,
-                            amenities = emptyList()
+                            amenities = emptyList(),
+                            isBought = dto.isBought ?: false
                         )
                     }
 

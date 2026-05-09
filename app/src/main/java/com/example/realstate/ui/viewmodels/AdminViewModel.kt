@@ -72,9 +72,9 @@ class AdminViewModel : ViewModel() {
                             beds = 0,
                             baths = 0,
                             area = "TBD",
-                            agentName = MockData.users.find { u -> u.id == dto.agentId }?.name ?: "Unknown",
                             agentPicUrl = "https://i.pravatar.cc/150",
-                            amenities = emptyList()
+                            amenities = emptyList(),
+                            isBought = dto.isBought ?: false
                         )
                     }
 

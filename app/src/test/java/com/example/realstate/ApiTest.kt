@@ -9,6 +9,6 @@ class ApiTest {
     fun testDashboard() = runBlocking {
         println("Fetching booked properties...")
         val booked = RetrofitClient.bookedPropertyApi.getAllBookedProperties()
-        println("Booked Properties Success: ${booked.success}, size: ${booked.data.size}")
+        println("Booked Properties Success: ${booked.success}, size: ${booked.data?.size}")
     }
 }

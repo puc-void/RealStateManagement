@@ -103,19 +103,32 @@ fun AdminPanelScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            ScrollableTabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.primary,
-                edgePadding = 24.dp,
-                modifier = Modifier.fillMaxWidth()
+            androidx.compose.foundation.lazy.LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                contentPadding = PaddingValues(horizontal = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = { Text(title, fontWeight = FontWeight.Bold) }
-                    )
+                itemsIndexed(tabs) { index, title ->
+                    val isSelected = selectedTab == index
+                    Surface(
+                        modifier = Modifier
+                            .clickable { selectedTab = index }
+                            .animateContentSize(),
+                        shape = RoundedCornerShape(20.dp),
+                        color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                        border = if (isSelected) null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                        shadowElevation = if (isSelected) 8.dp else 0.dp
+                    ) {
+                        Text(
+                            text = title,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
 
@@ -135,8 +148,8 @@ fun AdminPanelScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("System Overview", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                                Text("Admin Control", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
+                                Text("Welcome back, Admin", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text("Dashboard Insight", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.onSurface)
                             }
                             IconButton(
                                 onClick = { viewModel.refreshDashboard() },
@@ -268,6 +281,7 @@ fun AdminPanelScreen(
                 itemsIndexed(uiState.agents, key = { _, agent -> "admin_agent_${agent.id}" }) { index, agent ->
                     AgentManagementCard(
                         agent = agent,
+                        agentProperties = uiState.properties.filter { it.agentId == agent.id },
                         onClick = { onNavigateToUserDetail(agent.userId) },
                         onVerify = { viewModel.verifyAgent(agent.id) },
                         onMarkFraud = { viewModel.toggleAgentFraud(agent.id, agent.isFraud ?: false) },
@@ -286,17 +300,28 @@ fun AdminPanelScreen(
 fun AdminStatCard(modifier: Modifier = Modifier, title: String, value: String, icon: ImageVector, gradient: Brush) {
     Surface(
         modifier = modifier
-            .height(120.dp)
-            .shadow(8.dp, RoundedCornerShape(24.dp), spotColor = Color.Black.copy(alpha = 0.1f)),
-        shape = RoundedCornerShape(24.dp),
+            .height(140.dp)
+            .shadow(16.dp, RoundedCornerShape(28.dp), spotColor = Color.Black.copy(alpha = 0.2f)),
+        shape = RoundedCornerShape(28.dp),
         color = MaterialTheme.colorScheme.surface
     ) {
-        Box(modifier = Modifier.background(gradient).padding(16.dp)) {
+        Box(modifier = Modifier.background(gradient).padding(20.dp)) {
             Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
-                Icon(icon, null, tint = Color.White.copy(alpha = 0.7f), modifier = Modifier.size(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Surface(
+                        color = Color.White.copy(alpha = 0.25f),
+                        shape = CircleShape
+                    ) {
+                        Icon(icon, null, tint = Color.White, modifier = Modifier.padding(10.dp).size(26.dp))
+                    }
+                }
                 Column {
-                    Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = Color.White)
-                    Text(title, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.8f), fontWeight = FontWeight.Bold)
+                    Text(value, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Black, color = Color.White)
+                    Text(title, style = MaterialTheme.typography.titleMedium, color = Color.White.copy(alpha = 0.9f), fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -326,12 +351,31 @@ fun PropertyManagementCard(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AsyncImage(
-                model = property.imageUrl,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(70.dp).clip(RoundedCornerShape(14.dp))
-            )
+            Box {
+                AsyncImage(
+                    model = property.imageUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(70.dp).clip(RoundedCornerShape(14.dp))
+                )
+                if (property.isBought) {
+                    Surface(
+                        modifier = Modifier
+                            .align(Alignment.Center),
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color.Red.copy(alpha = 0.9f)
+                    ) {
+                        Text(
+                            text = "BOOKED",
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            color = Color.White,
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 10.sp,
+                            letterSpacing = 1.sp
+                        )
+                    }
+                }
+            }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(property.title, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -517,6 +561,7 @@ fun AdminMapOverview(properties: List<com.example.realstate.data.Property>) {
 @Composable
 fun AgentManagementCard(
     agent: AgentDetailDto,
+    agentProperties: List<com.example.realstate.data.Property>,
     onClick: () -> Unit,
     onVerify: () -> Unit,
     onMarkFraud: () -> Unit,
@@ -531,61 +576,89 @@ fun AgentManagementCard(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val user = agent.user
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
+        Column {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(user?.name?.take(1)?.uppercase() ?: "A", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(user?.name ?: "Unknown Agent", fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (agent.isVerified == true) {
-                        Icon(Icons.Default.Verified, null, tint = Color(0xFF10B981), modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                    }
-                    Text(user?.email ?: "", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                val user = agent.user
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(user?.name?.take(1)?.uppercase() ?: "A", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
                 }
-                if (agent.isFraud == true) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(4.dp),
-                        modifier = Modifier.padding(top = 4.dp)
-                    ) {
-                        Text(
-                            "FRAUD",
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.error
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(user?.name ?: "Unknown Agent", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (agent.isVerified == true) {
+                            Icon(Icons.Default.Verified, null, tint = Color(0xFF10B981), modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
+                        Text(user?.email ?: "", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    if (agent.isFraud == true) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(4.dp),
+                            modifier = Modifier.padding(top = 4.dp)
+                        ) {
+                            Text(
+                                "FRAUD",
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+                Row {
+                    if (agent.isVerified != true) {
+                        IconButton(onClick = onVerify) {
+                            Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF10B981))
+                        }
+                    }
+                    IconButton(onClick = onMarkFraud) {
+                        Icon(
+                            if (agent.isFraud == true) Icons.Default.GppGood else Icons.Default.GppBad,
+                            null,
+                            tint = if (agent.isFraud == true) Color(0xFF10B981) else MaterialTheme.colorScheme.error
                         )
                     }
-                }
-            }
-            Row {
-                if (agent.isVerified != true) {
-                    IconButton(onClick = onVerify) {
-                        Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF10B981))
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error)
                     }
                 }
-                IconButton(onClick = onMarkFraud) {
-                    Icon(
-                        if (agent.isFraud == true) Icons.Default.GppGood else Icons.Default.GppBad,
-                        null,
-                        tint = if (agent.isFraud == true) Color(0xFF10B981) else MaterialTheme.colorScheme.error
-                    )
-                }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error)
+            }
+            
+            AnimatedVisibility(visible = agent.isFraud == true) {
+                Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.error.copy(alpha = 0.05f)).padding(16.dp)) {
+                    Text("Agent's Properties", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    if (agentProperties.isEmpty()) {
+                        Text("No properties found for this agent.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else {
+                        agentProperties.forEach { prop ->
+                            Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.HomeWork, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(prop.title, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium)
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = onMarkFraud,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text("Revert Agent to Normal")
+                    }
                 }
             }
         }

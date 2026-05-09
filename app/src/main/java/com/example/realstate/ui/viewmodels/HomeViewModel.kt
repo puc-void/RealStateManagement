@@ -12,11 +12,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+enum class SortOption(val displayName: String) {
+    DEFAULT("Default"),
+    NAME_ASC("Name (A-Z)"),
+    NAME_DESC("Name (Z-A)"),
+    LOCATION_ASC("Location (A-Z)"),
+    LOCATION_DESC("Location (Z-A)"),
+    PRICE_ASC("Price (Low to High)"),
+    PRICE_DESC("Price (High to Low)")
+}
+
 data class HomeUiState(
     val properties: List<Property> = emptyList(),
     val filteredProperties: List<Property> = emptyList(),
     val wishlistedPropertyIds: Set<String> = emptySet(),
     val searchQuery: String = "",
+    val sortOption: SortOption = SortOption.DEFAULT,
     val isLoading: Boolean = false,
     val error: String? = null,
     val wishlistId: String = ""
@@ -65,14 +76,15 @@ class HomeViewModel : ViewModel() {
                             agentPicUrl = if (dto.agent?.user?.image?.startsWith("data:") == true) "https://i.pravatar.cc/150"
                                           else dto.agent?.user?.image ?: "https://i.pravatar.cc/150",
                             agentId = dto.agentId,
-                            amenities = listOf("Dynamic")
+                            amenities = listOf("Dynamic"),
+                            isBought = dto.isBought ?: false
                         )
                     } ?: emptyList()
                     
                     _uiState.update { 
                         it.copy(
                             properties = props,
-                            filteredProperties = applyFilter(props, it.searchQuery),
+                            filteredProperties = applyFilterAndSort(props, it.searchQuery, it.sortOption),
                             isLoading = false
                         )
                     }
@@ -90,26 +102,52 @@ class HomeViewModel : ViewModel() {
         _uiState.update { 
             it.copy(
                 properties = allProps,
-                filteredProperties = applyFilter(allProps, it.searchQuery),
+                filteredProperties = applyFilterAndSort(allProps, it.searchQuery, it.sortOption),
                 isLoading = false,
                 error = "Offline mode ($errorMsg)"
             )
         }
     }
 
-    private fun applyFilter(props: List<Property>, query: String): List<Property> {
-        if (query.isBlank()) return props
-        return props.filter { 
-            it.title.contains(query, ignoreCase = true) || 
-            it.location.contains(query, ignoreCase = true) 
+    private fun applyFilterAndSort(props: List<Property>, query: String, sortOption: SortOption): List<Property> {
+        val filtered = if (query.isBlank()) {
+            props
+        } else {
+            props.filter { 
+                it.title.contains(query, ignoreCase = true) || 
+                it.location.contains(query, ignoreCase = true) 
+            }
         }
+        
+        return when (sortOption) {
+            SortOption.DEFAULT -> filtered
+            SortOption.NAME_ASC -> filtered.sortedBy { it.title }
+            SortOption.NAME_DESC -> filtered.sortedByDescending { it.title }
+            SortOption.LOCATION_ASC -> filtered.sortedBy { it.location }
+            SortOption.LOCATION_DESC -> filtered.sortedByDescending { it.location }
+            SortOption.PRICE_ASC -> filtered.sortedBy { parsePrice(it.price) }
+            SortOption.PRICE_DESC -> filtered.sortedByDescending { parsePrice(it.price) }
+        }
+    }
+
+    private fun parsePrice(priceStr: String): Double {
+        return priceStr.replace("[^\\d.]".toRegex(), "").toDoubleOrNull() ?: 0.0
     }
 
     fun onSearchQueryChange(query: String) {
         _uiState.update { state ->
             state.copy(
                 searchQuery = query, 
-                filteredProperties = applyFilter(state.properties, query)
+                filteredProperties = applyFilterAndSort(state.properties, query, state.sortOption)
+            )
+        }
+    }
+
+    fun onSortOptionChange(option: SortOption) {
+        _uiState.update { state ->
+            state.copy(
+                sortOption = option,
+                filteredProperties = applyFilterAndSort(state.properties, state.searchQuery, option)
             )
         }
     }

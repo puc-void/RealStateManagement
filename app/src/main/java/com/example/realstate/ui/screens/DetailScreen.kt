@@ -213,7 +213,21 @@ fun DetailScreen(
                                     fontSize = 24.sp,
                                     color = MaterialTheme.colorScheme.primary
                                 )
-                                if (uiState.userRole == UserRole.USER) {
+                                if (property.isBought) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Surface(
+                                        color = Color.Red.copy(alpha = 0.1f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Text(
+                                            "PROPERTY IS BOOKED",
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = Color.Red
+                                        )
+                                    }
+                                } else if (uiState.userRole == UserRole.USER) {
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Button(
                                         onClick = { showBookingDialog = true },
@@ -262,26 +276,39 @@ fun DetailScreen(
                             shape = RoundedCornerShape(24.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
                         ) {
-                            Row(
-                                modifier = Modifier.padding(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                AsyncImage(
-                                    model = property.agentPicUrl,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(60.dp).clip(CircleShape),
-                                    contentScale = ContentScale.Crop
-                                )
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(property.agentName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                                    Text("Nestora Elite Agent", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                                }
-                                IconButton(
-                                    onClick = { /* Call */ },
-                                    modifier = Modifier.background(MaterialTheme.colorScheme.primary, CircleShape)
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Default.Phone, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                    AsyncImage(
+                                        model = property.agentPicUrl,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(60.dp).clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(property.agentName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                        Text("Nestora Elite Agent", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                    }
+                                    IconButton(
+                                        onClick = { /* Call */ },
+                                        modifier = Modifier.background(MaterialTheme.colorScheme.primary, CircleShape)
+                                    ) {
+                                        Icon(Icons.Default.Phone, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                                    }
+                                }
+                                if (uiState.userRole == UserRole.USER) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    OutlinedButton(
+                                        onClick = { detailViewModel.reportAgentAsFraud(property.agentId) },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                                    ) {
+                                        Icon(Icons.Default.Warning, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text("Report Agent as Fraud", fontWeight = FontWeight.Bold)
+                                    }
                                 }
                             }
                         }

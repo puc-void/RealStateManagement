@@ -97,7 +97,8 @@ class DetailViewModel : ViewModel() {
                                       else agentPic ?: "https://i.pravatar.cc/150",
                         amenities = emptyList(),
                         agentId = dto.agentId,
-                        agentUserId = agentUserId
+                        agentUserId = agentUserId,
+                        isBought = dto.isBought ?: false
                     )
                     
                     val reviews = if (reviewsResponse.success) reviewsResponse.data ?: emptyList() else emptyList()
@@ -208,6 +209,24 @@ class DetailViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    fun reportAgentAsFraud(agentId: String) {
+        viewModelScope.launch {
+            try {
+                val body = mapOf(
+                    "title" to "Agent Fraud Report",
+                    "message" to "Agent ID: $agentId has been reported for fraud.",
+                    "receiverRole" to "ADMIN"
+                )
+                val response = RetrofitClient.notificationApi.addNotification(body)
+                if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Agent reported to admin.")
+                }
+            } catch (e: Exception) {
+                // handle silently or update error state
             }
         }
     }

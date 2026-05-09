@@ -52,7 +52,6 @@ fun MainScreen(
         when (user.role) {
             UserRole.USER -> listOf(
                 BottomNavItem("home", "Home", Icons.Default.Home),
-                BottomNavItem("wishlist", "Wishlist", Icons.Default.Favorite),
                 BottomNavItem("orders", "Orders", Icons.Default.List),
                 BottomNavItem("notifications", "Notifications", Icons.Default.Notifications),
                 BottomNavItem("profile", "Profile", Icons.Default.Person)
