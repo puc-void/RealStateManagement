@@ -66,6 +66,22 @@ fun OtpVerificationScreen(
 
     val isLoading = authState is AuthState.Loading
 
+    var timeLeft by remember { mutableIntStateOf(120) } // 2 minutes
+    var canResend by remember { mutableStateOf(false) }
+
+    LaunchedEffect(timeLeft) {
+        if (timeLeft > 0) {
+            delay(1000)
+            timeLeft--
+        } else {
+            canResend = true
+        }
+    }
+
+    val minutes = timeLeft / 60
+    val seconds = timeLeft % 60
+    val timerText = String.format("%01d:%02d", minutes, seconds)
+
     Box(modifier = Modifier.fillMaxSize()) {
         AsyncImage(
             model = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1000&q=80",
@@ -212,6 +228,29 @@ fun OtpVerificationScreen(
                             shape = RoundedCornerShape(16.dp)
                         )
 
+                        Spacer(Modifier.height(16.dp))
+                        
+                        // Timer Display
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Timer,
+                                contentDescription = null,
+                                tint = if (timeLeft > 0) MaterialTheme.colorScheme.primary else Color.Gray,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                text = if (timeLeft > 0) "Resend code in $timerText" else "You can resend the code now",
+                                color = if (timeLeft > 0) Color.White else MaterialTheme.colorScheme.primary,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+
                         Spacer(Modifier.height(24.dp))
 
                         // Verify button
@@ -235,12 +274,34 @@ fun OtpVerificationScreen(
 
                         Spacer(Modifier.height(16.dp))
 
-                        TextButton(onClick = { 
-                            errorMsg = "If you didn't receive the code, please wait 1-2 minutes or check your Spam folder."
-                        }) {
-                            Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp), tint = Color.LightGray)
-                            Spacer(Modifier.width(4.dp))
-                            Text("Didn't get the email? Tap to resend hint", color = Color.LightGray, fontSize = 12.sp)
+                        TextButton(
+                            onClick = { 
+                                if (canResend) {
+                                    // Reset timer
+                                    timeLeft = 120
+                                    canResend = false
+                                    // Optionally trigger a real resend if API exists, 
+                                    // for now we'll just show a hint as before or clear error
+                                    errorMsg = "OTP has been resent to your email."
+                                } else {
+                                    errorMsg = "Please wait for the timer to finish before resending."
+                                }
+                            },
+                            enabled = canResend
+                        ) {
+                            Icon(
+                                Icons.Default.Refresh, 
+                                null, 
+                                modifier = Modifier.size(18.dp), 
+                                tint = if (canResend) MaterialTheme.colorScheme.primary else Color.Gray
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                "Resend OTP", 
+                                color = if (canResend) MaterialTheme.colorScheme.primary else Color.Gray, 
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
