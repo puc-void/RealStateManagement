@@ -320,7 +320,7 @@ fun FeaturedPropertyCard(
                     .height(80.dp)
                     .background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Black.copy(alpha = 0.4f), Color.Transparent)
+                            colors = listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), Color.Transparent)
                         )
                     )
             )

@@ -119,41 +119,6 @@ fun DetailScreen(
     }
 
     Scaffold(
-        bottomBar = {
-            if (uiState.userRole != UserRole.AGENT) {
-                Surface(
-                    color = Color.White,
-                    shadowElevation = 40.dp,
-                    shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .padding(horizontal = 24.dp, vertical = 24.dp)
-                            .fillMaxWidth()
-                            .navigationBarsPadding(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text("Total Price", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                            Text(property.price, fontWeight = FontWeight.ExtraBold, fontSize = 28.sp, color = MaterialTheme.colorScheme.primary)
-                        }
-                        Button(
-                            onClick = { showBookingDialog = true },
-                            modifier = Modifier
-                                .width(180.dp)
-                                .height(64.dp)
-                                .shadow(12.dp, RoundedCornerShape(20.dp), spotColor = MaterialTheme.colorScheme.primary),
-                            shape = RoundedCornerShape(20.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                        ) {
-                            Text("Reserve Now", fontWeight = FontWeight.ExtraBold, letterSpacing = 1.sp)
-                        }
-                    }
-                }
-            }
-        }
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             Column(
@@ -228,12 +193,38 @@ fun DetailScreen(
                         
                         Spacer(modifier = Modifier.height(8.dp))
                         
-                        Text(
-                            text = property.title,
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = property.title,
+                                    style = MaterialTheme.typography.headlineLarge,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = property.price,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    fontSize = 24.sp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                if (uiState.userRole == UserRole.USER) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Button(
+                                        onClick = { showBookingDialog = true },
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                                    ) {
+                                        Text("Reserve Now", fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(12.dp))
 

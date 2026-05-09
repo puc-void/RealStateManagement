@@ -29,9 +29,14 @@ class OrderViewModel : ViewModel() {
                 // Fetch bought properties (sold properties)
                 val boughtResponse = RetrofitClient.soldPropertyApi.getSoldPropertiesByUser(userId)
                 
+                val rawBooked = if (bookedResponse.success) bookedResponse.data ?: emptyList() else emptyList()
+                val rawBought = if (boughtResponse.success) boughtResponse.data ?: emptyList() else emptyList()
+                
+                val boughtPropIds = rawBought.map { it.propertyId }.toSet()
+
                 _uiState.update { it.copy(
-                    bookedProperties = if (bookedResponse.success) bookedResponse.data ?: emptyList() else emptyList(),
-                    boughtProperties = if (boughtResponse.success) boughtResponse.data ?: emptyList() else emptyList(),
+                    bookedProperties = rawBooked.filter { !it.isSold && it.propertyId !in boughtPropIds },
+                    boughtProperties = rawBought,
                     isLoading = false
                 ) }
             } catch (e: Exception) {

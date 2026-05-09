@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.realstate.data.MockData
+import com.example.realstate.data.UserRole
 import com.example.realstate.ui.viewmodels.WishlistViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,6 +40,23 @@ fun WishlistItemDetailScreen(
     
     LaunchedEffect(itemId) {
         wishlistViewModel.getWishlistItemDetails(itemId)
+    }
+
+    var showBookingDialog by remember { mutableStateOf(false) }
+
+    if (showBookingDialog && uiState.selectedItem?.property != null) {
+        BookingSubmissionDialog(
+            propertyTitle = uiState.selectedItem!!.property!!.title,
+            onDismiss = { showBookingDialog = false },
+            onSubmit = { amount ->
+                wishlistViewModel.bookProperty(
+                    uiState.selectedItem!!.property!!.id,
+                    uiState.selectedItem!!.agentId,
+                    amount
+                )
+                showBookingDialog = false
+            }
+        )
     }
 
     Scaffold(
@@ -113,16 +132,38 @@ fun WishlistItemDetailScreen(
                                     }
                                 }
 
-                                Spacer(modifier = Modifier.height(12.dp))
-                                
-                                Text(
-                                    text = property.title,
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = property.title,
+                                            style = MaterialTheme.typography.headlineMedium,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text(
+                                            text = property.priceRange,
+                                            style = MaterialTheme.typography.headlineSmall,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontWeight = FontWeight.ExtraBold
+                                        )
+                                        if (MockData.currentUser.role == UserRole.USER) {
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Button(
+                                                onClick = { showBookingDialog = true },
+                                                shape = RoundedCornerShape(12.dp),
+                                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                                            ) {
+                                                Text("Reserve Now", fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                    }
+                                }
                                 
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
@@ -140,15 +181,6 @@ fun WishlistItemDetailScreen(
                                 }
 
                                 Spacer(modifier = Modifier.height(24.dp))
-
-                                Text(
-                                    text = property.priceRange,
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.ExtraBold
-                                )
-
-                                Spacer(modifier = Modifier.height(32.dp))
                                 
                                 Text("Description", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
                                 Spacer(modifier = Modifier.height(12.dp))

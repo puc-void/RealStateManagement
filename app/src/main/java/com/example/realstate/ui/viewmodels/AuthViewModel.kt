@@ -129,6 +129,8 @@ class AuthViewModel : ViewModel() {
                             else -> UserRole.USER
                         },
                         profilePicUrl = "https://i.pravatar.cc/150",
+                        phone = contactNumber,
+                        location = address,
                         wishlistId = wId
                     )
                     

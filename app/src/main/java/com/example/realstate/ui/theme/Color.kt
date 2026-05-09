@@ -2,19 +2,20 @@ package com.example.realstate.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Emerald80 = Color(0xFF81C784)
-val EmeraldGrey80 = Color(0xFFB0BEC5)
-val Teal80 = Color(0xFF80CBC4)
+val Violet80 = Color(0xFFD0BCFF)
+val VioletGrey80 = Color(0xFFCCC2DC)
+val Pink80 = Color(0xFFEFB8C8)
 
-val Emerald40 = Color(0xFF2E7D32)
-val EmeraldGrey40 = Color(0xFF455A64)
-val Teal40 = Color(0xFF00695C)
+val Violet40 = Color(0xFF6650a4)
+val VioletGrey40 = Color(0xFF625b71)
+val Pink40 = Color(0xFF7D5260)
 
-val DeepBackgroundDark = Color(0xFF121212)
-val DeepSurfaceDark = Color(0xFF1E1E1E)
-val LightBackground = Color(0xFFF8F9FA)
+val DeepBackgroundDark = Color(0xFF0F0F13)
+val DeepSurfaceDark = Color(0xFF1A1A24)
+val LightBackground = Color(0xFFFAFAFA)
 val LightSurface = Color(0xFFFFFFFF)
 
-val AccentGold = Color(0xFFFFD700)
-val GlassWhite = Color(0x33FFFFFF)
-val GlassDark = Color(0x33000000)
+val AccentNeon = Color(0xFFFF5252)
+val GoldPremium = Color(0xFFFFD700)
+val GlassWhite = Color(0x22FFFFFF)
+val GlassDark = Color(0x44000000)

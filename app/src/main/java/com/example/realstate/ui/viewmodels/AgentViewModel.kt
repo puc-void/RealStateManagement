@@ -229,7 +229,7 @@ class AgentViewModel : ViewModel() {
                         "userId" to booking.userId,
                         "agentId" to booking.agentId,
                         "isPropAmountAccepted" to true,
-                        "isSold" to true
+                        "isSold" to false
                     )
                 )
                 if (response.success) {

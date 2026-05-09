@@ -7,8 +7,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -400,7 +402,11 @@ fun AgentBookingItem(
                     overflow = TextOverflow.Ellipsis
                 )
             }
-            if (!booking.isSold) {
+            if (booking.isSold) {
+                Icon(Icons.Default.Verified, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(32.dp))
+            } else if (booking.isPropAmountAccepted) {
+                Icon(Icons.Default.PendingActions, contentDescription = "Waiting for User", tint = Color(0xFF10B981), modifier = Modifier.size(32.dp))
+            } else {
                 IconButton(
                     onClick = onAccept,
                     modifier = Modifier
@@ -409,8 +415,6 @@ fun AgentBookingItem(
                 ) {
                     Icon(Icons.Default.Check, null, tint = Color.White)
                 }
-            } else {
-                Icon(Icons.Default.Verified, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(32.dp))
             }
         }
     }
@@ -427,7 +431,10 @@ fun BookingDetailDialog(
         onDismissRequest = onDismiss,
         title = { Text("Booking Request Details", fontWeight = FontWeight.Bold) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer), contentAlignment = Alignment.Center) {
                         Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
@@ -446,9 +453,40 @@ fun BookingDetailDialog(
                     Text(booking.property?.title ?: "Unknown Property", fontWeight = FontWeight.SemiBold)
                 }
 
+                if (booking.property != null) {
+                    Column {
+                        Text("Location", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(booking.property.location ?: "N/A", fontWeight = FontWeight.Normal)
+                    }
+                    Column {
+                        Text("Original Price", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(booking.property.priceRange ?: "N/A", fontWeight = FontWeight.Normal)
+                    }
+                    Column {
+                        Text("Type", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(booking.property.propertyType ?: "N/A", fontWeight = FontWeight.Normal)
+                    }
+                    Column {
+                        Text("Description", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(booking.property.description ?: "N/A", fontWeight = FontWeight.Normal, maxLines = 4, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+
+                HorizontalDivider()
+
                 Column {
                     Text("Proposed Amount", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(booking.proposedAmount, style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                }
+
+                if (booking.isPropAmountAccepted && !booking.isSold) {
+                    Surface(color = Color(0xFF10B981).copy(alpha = 0.1f), shape = RoundedCornerShape(8.dp)) {
+                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF10B981))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("You accepted this offer. Waiting for user to confirm purchase.", color = Color(0xFF10B981), fontSize = 13.sp)
+                        }
+                    }
                 }
 
                 if (booking.isSold) {
@@ -463,9 +501,9 @@ fun BookingDetailDialog(
             }
         },
         confirmButton = {
-            if (!booking.isSold) {
+            if (!booking.isSold && !booking.isPropAmountAccepted) {
                 Button(onClick = onAccept) {
-                    Text("Accept & Mark as Sold")
+                    Text("Accept Proposed Price")
                 }
             }
         },

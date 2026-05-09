@@ -77,5 +77,40 @@ class WishlistViewModel : ViewModel() {
     fun clearError() {
         WishlistRepository.clearError()
     }
+
+    fun bookProperty(propertyId: Int, agentId: String, amount: String) {
+        val userId = MockData.currentUser.id
+        viewModelScope.launch {
+            try {
+                val body = mapOf(
+                    "propertyId" to propertyId,
+                    "userId" to userId,
+                    "agentId" to agentId,
+                    "proposedAmount" to amount
+                )
+                val response = RetrofitClient.bookedPropertyApi.bookProperty(body)
+                if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Booking request sent successfully!")
+                    val prop = _uiState.value.selectedItem?.property
+                    val agentUserId = _uiState.value.selectedItem?.agent?.userId ?: ""
+                    if (prop != null && agentUserId.isNotEmpty()) {
+                        RetrofitClient.notificationApi.addNotification(
+                            mapOf(
+                                "title" to "New Booking Request",
+                                "message" to "A user has requested to book your property: ${prop.title}",
+                                "userId" to agentUserId,
+                                "receiverId" to agentUserId,
+                                "receiverRole" to "AGENT"
+                            )
+                        )
+                    }
+                } else {
+                    _uiState.update { it.copy(error = response.message) }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
 }
 
