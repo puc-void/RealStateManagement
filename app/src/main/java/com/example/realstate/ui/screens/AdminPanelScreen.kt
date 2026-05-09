@@ -83,177 +83,201 @@ fun AdminPanelScreen(
         )
     }
 
+    var selectedTab by remember { mutableStateOf(0) }
+    val tabs = listOf("Overview", "Properties", "Users", "Agents")
+
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddDialog = true },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = CircleShape,
-                modifier = Modifier.padding(bottom = 80.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Property")
+            if (selectedTab == 1) {
+                FloatingActionButton(
+                    onClick = { showAddDialog = true },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    shape = CircleShape,
+                    modifier = Modifier.padding(bottom = 80.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Property")
+                }
             }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            ScrollableTabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.primary,
+                edgePadding = 24.dp,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = { Text(title, fontWeight = FontWeight.Bold) }
+                    )
+                }
+            }
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+            if (selectedTab == 0) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp)
                     ) {
-                        Column {
-                            Text("System Overview", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                            Text("Admin Control", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
-                        }
-                        IconButton(
-                            onClick = { viewModel.refreshDashboard() },
-                            modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.Refresh, null, tint = MaterialTheme.colorScheme.primary)
+                            Column {
+                                Text("System Overview", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                Text("Admin Control", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold)
+                            }
+                            IconButton(
+                                onClick = { viewModel.refreshDashboard() },
+                                modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), CircleShape)
+                            ) {
+                                Icon(Icons.Default.Refresh, null, tint = MaterialTheme.colorScheme.primary)
+                            }
                         }
+                    }
+                }
+
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        AdminStatCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Revenue",
+                            value = String.format(java.util.Locale.US, "$%.1fK", uiState.totalRevenue / 1000),
+                            icon = Icons.Default.Payments,
+                            gradient = Brush.linearGradient(listOf(Color(0xFF10B981), Color(0xFF059669)))
+                        )
+                        AdminStatCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Agents",
+                            value = uiState.agents.size.toString(),
+                            icon = Icons.Default.SupportAgent,
+                            gradient = Brush.linearGradient(listOf(Color(0xFF3B82F6), Color(0xFF2563EB)))
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        AdminStatCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Properties",
+                            value = uiState.properties.size.toString(),
+                            icon = Icons.Default.HomeWork,
+                            gradient = Brush.linearGradient(listOf(Color(0xFFF59E0B), Color(0xFFD97706)))
+                        )
+                        AdminStatCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Users",
+                            value = uiState.users.size.toString(),
+                            icon = Icons.Default.Group,
+                            gradient = Brush.linearGradient(listOf(Color(0xFF8B5CF6), Color(0xFF7C3AED)))
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+
+                item {
+                    AdminMapOverview(properties = uiState.properties)
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+            }
+
+            if (selectedTab == 1) {
+                item {
+                    Text(
+                        "Manage Inventory",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                    )
+                }
+
+                itemsIndexed(uiState.properties, key = { _, prop -> "admin_prop_${prop.id}" }) { index, property ->
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn(tween(600, delayMillis = index * 50)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(600, delayMillis = index * 50))
+                    ) {
+                        PropertyManagementCard(
+                            property = property,
+                            isAdmin = true,
+                            onClick = { onNavigateToDetail(property.id) },
+                            onApprove = { viewModel.approveProperty(property.id) },
+                            onReject = { viewModel.deleteProperty(property.id) },
+                            onEdit = { propertyToEdit = property },
+                            onDelete = { viewModel.deleteProperty(property.id) }
+                        )
                     }
                 }
             }
 
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    AdminStatCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Revenue",
-                        value = String.format(Locale.US, "$%.1fK", uiState.totalRevenue / 1000),
-                        icon = Icons.Default.Payments,
-                        gradient = Brush.linearGradient(listOf(Color(0xFF10B981), Color(0xFF059669)))
-                    )
-                    AdminStatCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Agents",
-                        value = uiState.agents.size.toString(),
-                        icon = Icons.Default.SupportAgent,
-                        gradient = Brush.linearGradient(listOf(Color(0xFF3B82F6), Color(0xFF2563EB)))
+            if (selectedTab == 2) {
+                item {
+                    Text(
+                        "User Management",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    AdminStatCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Properties",
-                        value = uiState.properties.size.toString(),
-                        icon = Icons.Default.HomeWork,
-                        gradient = Brush.linearGradient(listOf(Color(0xFFF59E0B), Color(0xFFD97706)))
-                    )
-                    AdminStatCard(
-                        modifier = Modifier.weight(1f),
-                        title = "Users",
-                        value = uiState.users.size.toString(),
-                        icon = Icons.Default.Group,
-                        gradient = Brush.linearGradient(listOf(Color(0xFF8B5CF6), Color(0xFF7C3AED)))
-                    )
-                }
-                Spacer(modifier = Modifier.height(32.dp))
-            }
 
-            item {
-                AdminMapOverview(properties = uiState.properties)
-                Spacer(modifier = Modifier.height(32.dp))
-            }
-
-            item {
-                Text(
-                    "Manage Inventory",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            itemsIndexed(uiState.properties, key = { _, prop -> "admin_prop_${prop.id}" }) { index, property ->
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn(tween(600, delayMillis = index * 50)) + slideInHorizontally(initialOffsetX = { 50 }, animationSpec = tween(600, delayMillis = index * 50))
-                ) {
-                    PropertyManagementCard(
-                        property = property,
-                        isAdmin = true,
-                        onClick = { onNavigateToDetail(property.id) },
-                        onApprove = { viewModel.approveProperty(property.id) },
-                        onReject = { viewModel.deleteProperty(property.id) },
-                        onEdit = { propertyToEdit = property },
-                        onDelete = { viewModel.deleteProperty(property.id) }
-                    )
+                itemsIndexed(uiState.users, key = { _, user -> "admin_user_${user.id}" }) { index, user ->
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = fadeIn(tween(600)) + slideInVertically(initialOffsetY = { 20 })
+                    ) {
+                        UserManagementCard(
+                            user = user,
+                            onClick = { onNavigateToUserDetail(user.id ?: "") },
+                            onEdit = { userToEdit = user },
+                            onDelete = { viewModel.deleteUser(user.id ?: "") },
+                            onToggleStatus = { viewModel.toggleUserStatus(user.id ?: "", user.status ?: "active") }
+                        )
+                    }
                 }
             }
 
-            item {
-                Spacer(modifier = Modifier.height(32.dp))
-                Text(
-                    "User Management",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            itemsIndexed(uiState.users, key = { _, user -> "admin_user_${user.id}" }) { index, user ->
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn(tween(600)) + slideInVertically(initialOffsetY = { 20 })
-                ) {
-                    UserManagementCard(
-                        user = user,
-                        onClick = { onNavigateToUserDetail(user.id ?: "") },
-                        onEdit = { userToEdit = user },
-                        onDelete = { viewModel.deleteUser(user.id ?: "") },
-                        onToggleStatus = { viewModel.toggleUserStatus(user.id ?: "", user.status ?: "active") }
+            if (selectedTab == 3) {
+                item {
+                    Text(
+                        "Agent Verification",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                     )
                 }
-            }
 
-            item {
-                Spacer(modifier = Modifier.height(32.dp))
-                Text(
-                    "Agent Verification",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            itemsIndexed(uiState.agents, key = { _, agent -> "admin_agent_${agent.id}" }) { index, agent ->
-                AgentManagementCard(
-                    agent = agent,
-                    onClick = { onNavigateToUserDetail(agent.userId) },
-                    onVerify = { viewModel.verifyAgent(agent.id) },
-                    onMarkFraud = { viewModel.toggleAgentFraud(agent.id, agent.isFraud ?: false) },
-                    onDelete = { viewModel.deleteAgent(agent.id) }
-                )
+                itemsIndexed(uiState.agents, key = { _, agent -> "admin_agent_${agent.id}" }) { index, agent ->
+                    AgentManagementCard(
+                        agent = agent,
+                        onClick = { onNavigateToUserDetail(agent.userId) },
+                        onVerify = { viewModel.verifyAgent(agent.id) },
+                        onMarkFraud = { viewModel.toggleAgentFraud(agent.id, agent.isFraud ?: false) },
+                        onDelete = { viewModel.deleteAgent(agent.id) }
+                    )
+                }
             }
 
             item { Spacer(modifier = Modifier.height(120.dp)) }
+        }
         }
     }
 }
@@ -382,8 +406,16 @@ fun UserManagementCard(
                     color = if (user.status?.lowercase() == "active") Color(0xFF10B981) else Color(0xFFF43F5E)
                 )
             }
-            IconButton(onClick = onToggleStatus) {
-                Icon(if (user.status?.lowercase() == "active") Icons.Default.Block else Icons.Default.Check, null, modifier = Modifier.size(18.dp))
+            Row {
+                IconButton(onClick = onToggleStatus) {
+                    Icon(if (user.status?.lowercase() == "active") Icons.Default.Block else Icons.Default.Check, null, modifier = Modifier.size(18.dp))
+                }
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Default.Edit, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+                }
             }
         }
     }

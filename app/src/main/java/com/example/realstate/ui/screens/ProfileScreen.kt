@@ -390,6 +390,12 @@ fun ProfileScreen(
                             Spacer(modifier = Modifier.width(16.dp))
                             Text("Update Password", fontWeight = FontWeight.Bold)
                         }
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        Row(modifier = Modifier.fillMaxWidth().clickable { showEditDialog = true }.padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Text("Update Profile", fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
 
