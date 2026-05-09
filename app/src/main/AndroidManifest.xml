@@ -28,13 +28,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-<<<<<<< HEAD
-=======
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="" />
->>>>>>> ca8b95f (admin dashboard with user and agent menu seperately fixed)
     </application>
 
 </manifest>
