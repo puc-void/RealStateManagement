@@ -152,7 +152,7 @@ fun WishlistItemDetailScreen(
                                             color = MaterialTheme.colorScheme.primary,
                                             fontWeight = FontWeight.ExtraBold
                                         )
-                                        if (MockData.currentUser.role == UserRole.USER) {
+                                        if (MockData.currentUser.role == UserRole.USER && agent?.isFraud != true) {
                                             Spacer(modifier = Modifier.height(4.dp))
                                             Button(
                                                 onClick = { showBookingDialog = true },
@@ -161,6 +161,14 @@ fun WishlistItemDetailScreen(
                                             ) {
                                                 Text("Reserve Now", fontWeight = FontWeight.Bold)
                                             }
+                                        } else if (agent?.isFraud == true) {
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                "Reservations Disabled",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.error
+                                            )
                                         }
                                     }
                                 }

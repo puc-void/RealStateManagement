@@ -42,6 +42,7 @@ import java.util.Locale
 fun AdminPanelScreen(
     onNavigateToDetail: (String) -> Unit,
     onNavigateToUserDetail: (String) -> Unit,
+    initialTab: Int = 0,
     viewModel: AdminViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -83,7 +84,11 @@ fun AdminPanelScreen(
         )
     }
 
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by remember { mutableStateOf(initialTab) }
+    
+    LaunchedEffect(initialTab) {
+        selectedTab = initialTab
+    }
     val tabs = listOf("Overview", "Properties", "Users", "Agents")
 
     Scaffold(
@@ -259,6 +264,7 @@ fun AdminPanelScreen(
                     ) {
                         UserManagementCard(
                             user = user,
+                            bookedProperties = uiState.bookedProperties.filter { it.userId == user.id },
                             onClick = { onNavigateToUserDetail(user.id ?: "") },
                             onEdit = { userToEdit = user },
                             onDelete = { viewModel.deleteUser(user.id ?: "") },
@@ -405,60 +411,93 @@ fun PropertyManagementCard(
 
 @Composable
 fun UserManagementCard(
-    user: UserDto, 
+    user: UserDto,
+    bookedProperties: List<com.example.realstate.data.model.BookedPropertyDto>,
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onToggleStatus: () -> Unit
 ) {
+    var expanded by remember { mutableStateOf(false) }
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 8.dp)
-            .clickable { onClick() }
+            .clickable { expanded = !expanded }
             .shadow(2.dp, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
+        Column {
+            Row(
+                modifier = Modifier.padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(user.name?.take(1)?.uppercase() ?: "U", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-            }
-            Spacer(modifier = Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(user.name ?: "User", fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                Text(user.email ?: "", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Surface(
-                color = if (user.status?.lowercase() == "active") Color(0xFF10B981).copy(alpha = 0.1f) else Color(0xFFF43F5E).copy(alpha = 0.1f),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Text(
-                    user.status?.uppercase() ?: "ACTIVE",
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = if (user.status?.lowercase() == "active") Color(0xFF10B981) else Color(0xFFF43F5E)
-                )
-            }
-            Row {
-                IconButton(onClick = onToggleStatus) {
-                    Icon(if (user.status?.lowercase() == "active") Icons.Default.Block else Icons.Default.Check, null, modifier = Modifier.size(18.dp))
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(user.name?.take(1)?.uppercase() ?: "U", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 }
-                IconButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onClick() }
+                ) {
+                    Text(user.name ?: "User", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text(user.email ?: "", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+                Surface(
+                    color = if (user.status?.lowercase() == "active") Color(0xFF10B981).copy(alpha = 0.1f) else Color(0xFFF43F5E).copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        user.status?.uppercase() ?: "ACTIVE",
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = if (user.status?.lowercase() == "active") Color(0xFF10B981) else Color(0xFFF43F5E)
+                    )
+                }
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
+                }
+                Row {
+                    IconButton(onClick = onToggleStatus) {
+                        Icon(if (user.status?.lowercase() == "active") Icons.Default.Block else Icons.Default.Check, null, modifier = Modifier.size(18.dp))
+                    }
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Default.Edit, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+                    }
+                    IconButton(onClick = onDelete) {
+                        Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
+                    }
+                }
+            }
+
+            AnimatedVisibility(visible = expanded) {
+                Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)).padding(16.dp)) {
+                    Text("User's Bookings", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    if (bookedProperties.isEmpty()) {
+                        Text("No properties booked yet.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else {
+                        bookedProperties.forEach { booking ->
+                            Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Bookmark, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(booking.property?.title ?: "Unknown Property", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
+                                    Text("Offered: ${booking.proposedAmount}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -567,11 +606,13 @@ fun AgentManagementCard(
     onMarkFraud: () -> Unit,
     onDelete: () -> Unit
 ) {
+    var expanded by remember { mutableStateOf(false) }
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 8.dp)
-            .clickable { onClick() }
+            .clickable { expanded = !expanded }
             .shadow(2.dp, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface
@@ -592,7 +633,11 @@ fun AgentManagementCard(
                     Text(user?.name?.take(1)?.uppercase() ?: "A", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
                 }
                 Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onClick() }
+                ) {
                     Text(user?.name ?: "Unknown Agent", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (agent.isVerified == true) {
@@ -617,6 +662,9 @@ fun AgentManagementCard(
                         }
                     }
                 }
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
+                }
                 Row {
                     if (agent.isVerified != true) {
                         IconButton(onClick = onVerify) {
@@ -636,28 +684,30 @@ fun AgentManagementCard(
                 }
             }
             
-            AnimatedVisibility(visible = agent.isFraud == true) {
-                Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.error.copy(alpha = 0.05f)).padding(16.dp)) {
-                    Text("Agent's Properties", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+            AnimatedVisibility(visible = expanded || agent.isFraud == true) {
+                Column(modifier = Modifier.fillMaxWidth().background(if (agent.isFraud == true) MaterialTheme.colorScheme.error.copy(alpha = 0.05f) else MaterialTheme.colorScheme.secondary.copy(alpha = 0.05f)).padding(16.dp)) {
+                    Text("Agent's Properties", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = if (agent.isFraud == true) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary)
                     Spacer(modifier = Modifier.height(8.dp))
                     if (agentProperties.isEmpty()) {
                         Text("No properties found for this agent.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
                         agentProperties.forEach { prop ->
                             Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.HomeWork, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
+                                Icon(Icons.Default.HomeWork, contentDescription = null, modifier = Modifier.size(16.dp), tint = if (agent.isFraud == true) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(prop.title, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium)
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(
-                        onClick = onMarkFraud,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                    ) {
-                        Text("Revert Agent to Normal")
+                    if (agent.isFraud == true) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Button(
+                            onClick = onMarkFraud,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        ) {
+                            Text("Revert Agent to Normal")
+                        }
                     }
                 }
             }

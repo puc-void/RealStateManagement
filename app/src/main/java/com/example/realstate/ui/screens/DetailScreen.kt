@@ -227,7 +227,7 @@ fun DetailScreen(
                                             color = Color.Red
                                         )
                                     }
-                                } else if (uiState.userRole == UserRole.USER) {
+                                } else if (uiState.userRole == UserRole.USER && !property.isAgentFraud) {
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Button(
                                         onClick = { showBookingDialog = true },
@@ -236,6 +236,14 @@ fun DetailScreen(
                                     ) {
                                         Text("Reserve Now", fontWeight = FontWeight.Bold)
                                     }
+                                } else if (property.isAgentFraud) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        "Reservations Disabled",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
                                 }
                             }
                         }
@@ -288,7 +296,24 @@ fun DetailScreen(
                                     )
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(property.agentName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(property.agentName, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                            if (property.isAgentFraud) {
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Surface(
+                                                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
+                                                    shape = RoundedCornerShape(4.dp)
+                                                ) {
+                                                    Text(
+                                                        "FRAUD",
+                                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                        fontSize = 10.sp,
+                                                        fontWeight = FontWeight.ExtraBold,
+                                                        color = MaterialTheme.colorScheme.error
+                                                    )
+                                                }
+                                            }
+                                        }
                                         Text("Nestora Elite Agent", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                                     }
                                     IconButton(
@@ -298,10 +323,10 @@ fun DetailScreen(
                                         Icon(Icons.Default.Phone, null, tint = Color.White, modifier = Modifier.size(20.dp))
                                     }
                                 }
-                                if (uiState.userRole == UserRole.USER) {
+                                if (uiState.userRole == UserRole.USER && !uiState.isReported && !property.isAgentFraud) {
                                     Spacer(modifier = Modifier.height(16.dp))
                                     OutlinedButton(
-                                        onClick = { detailViewModel.reportAgentAsFraud(property.agentId) },
+                                        onClick = { detailViewModel.reportAgentAsFraud(property.agentId, property.agentName) },
                                         modifier = Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
                                     ) {
@@ -328,7 +353,7 @@ fun DetailScreen(
 
                         Text("Location", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
                         Spacer(modifier = Modifier.height(16.dp))
-                        PropertyLocationMap(location = property.location, title = property.title)
+                        PropertyLocationMap(location = property.location, title = property.title, sectionLabel = "")
 
                         Spacer(modifier = Modifier.height(40.dp))
 

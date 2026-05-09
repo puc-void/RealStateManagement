@@ -21,7 +21,8 @@ data class DetailUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val userRole: UserRole = MockData.currentUser.role,
-    val userId: String = ""
+    val userId: String = "",
+    val isReported: Boolean = false
 )
 
 class DetailViewModel : ViewModel() {
@@ -67,6 +68,8 @@ class DetailViewModel : ViewModel() {
                     var agentPic = dto.agent?.user?.image
                     var agentUserId = dto.agent?.userId ?: ""
 
+                    var isFraud = dto.agent?.isFraud ?: false
+
                     // Fallback: If agent object is missing, fetch agent details separately
                     if (agentName == null && dto.agentId.isNotEmpty()) {
                         try {
@@ -75,6 +78,7 @@ class DetailViewModel : ViewModel() {
                                 agentName = agentResponse.data.user?.name
                                 agentPic = agentResponse.data.user?.image
                                 agentUserId = agentResponse.data.userId ?: ""
+                                isFraud = agentResponse.data.isFraud ?: false
                             }
                         } catch (e: Exception) {
                             // Ignore fallback failure
@@ -98,7 +102,8 @@ class DetailViewModel : ViewModel() {
                         amenities = emptyList(),
                         agentId = dto.agentId,
                         agentUserId = agentUserId,
-                        isBought = dto.isBought ?: false
+                        isBought = dto.isBought ?: false,
+                        isAgentFraud = isFraud
                     )
                     
                     val reviews = if (reviewsResponse.success) reviewsResponse.data ?: emptyList() else emptyList()
@@ -213,17 +218,18 @@ class DetailViewModel : ViewModel() {
         }
     }
 
-    fun reportAgentAsFraud(agentId: String) {
+    fun reportAgentAsFraud(agentId: String, agentName: String) {
         viewModelScope.launch {
             try {
                 val body = mapOf(
                     "title" to "Agent Fraud Report",
-                    "message" to "Agent ID: $agentId has been reported for fraud.",
+                    "message" to "Agent $agentName has been reported for fraud.",
                     "receiverRole" to "ADMIN"
                 )
                 val response = RetrofitClient.notificationApi.addNotification(body)
                 if (response.success) {
                     com.example.realstate.utils.NotificationManager.showNotification("Agent reported to admin.")
+                    _uiState.update { it.copy(isReported = true) }
                 }
             } catch (e: Exception) {
                 // handle silently or update error state

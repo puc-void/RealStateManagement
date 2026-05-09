@@ -189,6 +189,36 @@ fun AgentDashboardScreen(
                             }
                         }
                     }
+                    if (uiState.isFraud) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(24.dp),
+                            color = MaterialTheme.colorScheme.errorContainer
+                        ) {
+                            Column(modifier = Modifier.padding(20.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Warning, null, tint = MaterialTheme.colorScheme.error)
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text("Account Restricted", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+                                }
+                                Text(
+                                    "Your account has been marked for fraudulent activity. Your listings are currently hidden from users.",
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                                Button(
+                                    onClick = { viewModel.appealFraudStatus() },
+                                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("Appeal This Decision", fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
                 }
             }
 

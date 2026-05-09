@@ -32,6 +32,7 @@ import com.example.realstate.ui.viewmodels.HomeViewModel
 import kotlinx.coroutines.launch
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.realstate.ui.viewmodels.NotificationViewModel
+import com.example.realstate.data.model.NotificationDto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +48,7 @@ fun MainScreen(
     val notificationViewModel: NotificationViewModel = viewModel()
     val user by MockData.currentUserFlow.collectAsState()
     val notifUiState by notificationViewModel.uiState.collectAsState()
+    var adminInitialTab by remember { mutableStateOf(0) }
     
     val navItems = remember(user.role) {
         when (user.role) {
@@ -264,13 +266,28 @@ fun MainScreen(
                         onNavigateToDetail = onNavigateToDetail,
                         onNavigateToUserDetail = { userId ->
                             navController.navigate("user_detail/$userId")
-                        }
+                        },
+                        initialTab = adminInitialTab
                     )
                 }
                 composable("notifications") {
                     NotificationScreen(
-                        onNotificationClick = {
-                            if (user.role == UserRole.AGENT) {
+                        onNotificationClick = { notification ->
+                            if (user.role == UserRole.ADMIN) {
+                                when (notification.title) {
+                                    "Agent Fraud Report", "Fraud Status Appeal" -> {
+                                        adminInitialTab = 3 // Agents tab
+                                        navController.navigate("admin_dashboard")
+                                    }
+                                    "New Property for Review" -> {
+                                        adminInitialTab = 1 // Properties tab
+                                        navController.navigate("admin_dashboard")
+                                    }
+                                    else -> {
+                                        navController.navigate("admin_dashboard")
+                                    }
+                                }
+                            } else if (user.role == UserRole.AGENT) {
                                 navController.navigate("agent_dashboard")
                             } else if (user.role == UserRole.USER) {
                                 navController.navigate("orders")

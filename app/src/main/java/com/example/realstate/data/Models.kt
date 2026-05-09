@@ -21,7 +21,8 @@ data class Property(
     val agentPicUrl: String = "https://i.pravatar.cc/150?img=12",
     val agentId: String = "",
     val agentUserId: String = "",
-    val isBought: Boolean = false
+    val isBought: Boolean = false,
+    val isAgentFraud: Boolean = false
 )
 
 data class Order(

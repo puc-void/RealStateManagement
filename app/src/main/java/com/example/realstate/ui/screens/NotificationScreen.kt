@@ -32,7 +32,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationScreen(
-    onNotificationClick: () -> Unit = {},
+    onNotificationClick: (NotificationDto) -> Unit = {},
     viewModel: NotificationViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -80,7 +80,7 @@ fun NotificationScreen(
                         notification = notification,
                         showDelete = uiState.userRole == UserRole.ADMIN,
                         onDelete = { viewModel.deleteNotification(notification.id) },
-                        onClick = onNotificationClick
+                        onClick = { onNotificationClick(notification) }
                     )
                 }
                 item { Spacer(modifier = Modifier.height(80.dp)) }

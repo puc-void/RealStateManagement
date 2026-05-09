@@ -104,13 +104,15 @@ fun PropertyLocationMap(
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            sectionLabel,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+        if (sectionLabel.isNotEmpty()) {
+            Text(
+                sectionLabel,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
 
         Card(
             modifier = Modifier

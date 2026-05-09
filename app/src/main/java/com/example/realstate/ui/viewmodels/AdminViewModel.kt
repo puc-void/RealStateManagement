@@ -25,7 +25,8 @@ data class AdminUiState(
     val users: List<com.example.realstate.data.model.UserDto> = emptyList(),
     val agents: List<com.example.realstate.data.model.AgentDetailDto> = emptyList(),
     val soldProperties: List<com.example.realstate.data.model.SoldPropertyDto> = emptyList(),
-    val notifications: List<com.example.realstate.data.model.NotificationDto> = emptyList()
+    val notifications: List<com.example.realstate.data.model.NotificationDto> = emptyList(),
+    val bookedProperties: List<com.example.realstate.data.model.BookedPropertyDto> = emptyList()
 )
 
 class AdminViewModel : ViewModel() {
@@ -112,6 +113,7 @@ class AdminViewModel : ViewModel() {
                         agents = agents,
                         soldProperties = soldProperties,
                         notifications = notifications,
+                        bookedProperties = if (bookedResponse != null && bookedResponse.success) bookedResponse.data ?: emptyList() else emptyList(),
                         isLoading = false
                     ) }
                 } else {

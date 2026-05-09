@@ -24,7 +24,9 @@ data class AgentUiState(
     val activeBookingsCount: Int = 0,
     val selectedFilter: String = "All",
     val wishlistItems: List<com.example.realstate.data.model.WishlistItemDto> = emptyList(),
-    val isUploadingImage: Boolean = false
+    val isUploadingImage: Boolean = false,
+    val isFraud: Boolean = false,
+    val isVerified: Boolean = false
 )
 
 class AgentViewModel : ViewModel() {
@@ -48,6 +50,16 @@ class AgentViewModel : ViewModel() {
                         val myAgent = agentsRes.data?.find { it.userId == MockData.currentUser.id }
                         if (myAgent != null) {
                             MockData.currentAgentId = myAgent.id
+                            _uiState.update { it.copy(isFraud = myAgent.isFraud ?: false, isVerified = myAgent.isVerified ?: false) }
+                        }
+                    }
+                } else {
+                    // Refresh current agent status
+                    val agentsRes = RetrofitClient.agentApi.getAllAgents()
+                    if (agentsRes.success) {
+                        val myAgent = agentsRes.data?.find { it.userId == MockData.currentUser.id }
+                        if (myAgent != null) {
+                            _uiState.update { it.copy(isFraud = myAgent.isFraud ?: false, isVerified = myAgent.isVerified ?: false) }
                         }
                     }
                 }
@@ -309,6 +321,24 @@ class AgentViewModel : ViewModel() {
         } catch (e: Exception) {
             _uiState.update { it.copy(isUploadingImage = false, error = e.message) }
             null
+        }
+    }
+    fun appealFraudStatus() {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitClient.notificationApi.addNotification(
+                    mapOf(
+                        "title" to "Fraud Status Appeal",
+                        "message" to "Agent ${MockData.currentUser.name} (ID: $agentId) has appealed their fraud status.",
+                        "receiverRole" to "ADMIN"
+                    )
+                )
+                if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification("Appeal sent to admin.")
+                }
+            } catch (e: Exception) {
+                // handle
+            }
         }
     }
 }
