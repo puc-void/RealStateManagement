@@ -25,7 +25,7 @@ interface AuthApiService {
         @Body body: Map<String, String>
     ): BaseResponse<UserDto>
 
-    @POST("auth/user/resend-otp")
+    @PUT("auth/user/resend-otp")
     suspend fun resendOtp(@Body body: Map<String, String>): BaseResponse<OtpDto>
 }
 

@@ -39,7 +39,8 @@ import com.example.realstate.data.model.NotificationDto
 fun MainScreen(
     onLogout: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
-    onNavigateToWishlistItemDetail: (String) -> Unit
+    onNavigateToWishlistItemDetail: (String) -> Unit,
+    onNavigateToVerify: (userId: String, role: String, name: String, email: String) -> Unit
 ) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -255,7 +256,8 @@ fun MainScreen(
                 composable("profile") {
                     ProfileScreen(
                         onLogout = onLogout,
-                        onNavigateToDetail = onNavigateToDetail
+                        onNavigateToDetail = onNavigateToDetail,
+                        onNavigateToVerify = onNavigateToVerify
                     )
                 }
                 composable("agent_dashboard") {

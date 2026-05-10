@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(
     onLogout: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
+    onNavigateToVerify: (userId: String, role: String, name: String, email: String) -> Unit,
     viewModel: ProfileViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -348,13 +349,26 @@ fun ProfileScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(user.email, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                "Change email", 
-                                style = MaterialTheme.typography.labelSmall, 
-                                color = MaterialTheme.colorScheme.primary, 
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.clickable { showChangeEmailDialog = true }
-                            )
+                            if (!user.isEmailVerified) {
+                                Text(
+                                    "Verify Now", 
+                                    style = MaterialTheme.typography.labelSmall, 
+                                    color = MaterialTheme.colorScheme.error, 
+                                    fontWeight = FontWeight.ExtraBold,
+                                    modifier = Modifier.clickable { 
+                                        viewModel.resendOtp(user.email)
+                                        onNavigateToVerify(user.id, user.role.name, user.name, user.email)
+                                    }
+                                )
+                            } else {
+                                Text(
+                                    "Change email", 
+                                    style = MaterialTheme.typography.labelSmall, 
+                                    color = MaterialTheme.colorScheme.primary, 
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.clickable { showChangeEmailDialog = true }
+                                )
+                            }
                         }
                         
                         Spacer(modifier = Modifier.height(16.dp))

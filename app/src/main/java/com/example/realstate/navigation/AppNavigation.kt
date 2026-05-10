@@ -144,6 +144,11 @@ fun AppNavigation() {
                 },
                 onNavigateToWishlistItemDetail = { itemId ->
                     navController.navigate("wishlist_item_detail/$itemId")
+                },
+                onNavigateToVerify = { uId, uRole, uName, uEmail ->
+                    val encodedName = java.net.URLEncoder.encode(uName, "UTF-8")
+                    val encodedEmail = java.net.URLEncoder.encode(uEmail, "UTF-8")
+                    navController.navigate("verify/$uId/$uRole/$encodedName/$encodedEmail")
                 }
             )
         }
