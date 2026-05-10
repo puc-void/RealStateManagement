@@ -86,8 +86,10 @@ fun AppNavigation() {
         composable("signup") {
             SignUpScreen(
                 authViewModel = authViewModel,
-                onSignUpSuccess = { userId, role ->
-                    navController.navigate("verify/$userId/$role") {
+                onSignUpSuccess = { userId, role, name, email ->
+                    val encodedName = java.net.URLEncoder.encode(name, "UTF-8")
+                    val encodedEmail = java.net.URLEncoder.encode(email, "UTF-8")
+                    navController.navigate("verify/$userId/$role/$encodedName/$encodedEmail") {
                         popUpTo("signup") { inclusive = true }
                     }
                 },
@@ -99,17 +101,23 @@ fun AppNavigation() {
 
         // ── OTP Verification ─────────────────────────────────────────────────
         composable(
-            route = "verify/{userId}/{role}",
+            route = "verify/{userId}/{role}/{name}/{email}",
             arguments = listOf(
                 navArgument("userId") { type = NavType.StringType },
-                navArgument("role") { type = NavType.StringType }
+                navArgument("role") { type = NavType.StringType },
+                navArgument("name") { type = NavType.StringType },
+                navArgument("email") { type = NavType.StringType }
             )
         ) { backStackEntry ->
             val userId = backStackEntry.arguments?.getString("userId") ?: ""
             val role = backStackEntry.arguments?.getString("role") ?: "USER"
+            val name = backStackEntry.arguments?.getString("name") ?: ""
+            val email = backStackEntry.arguments?.getString("email") ?: ""
             OtpVerificationScreen(
                 userId = userId,
                 role = role,
+                name = name,
+                email = email,
                 authViewModel = authViewModel,
                 onVerified = {
                     navController.navigate("main") {

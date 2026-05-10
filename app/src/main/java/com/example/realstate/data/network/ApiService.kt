@@ -24,6 +24,9 @@ interface AuthApiService {
         @Path("id") id: String,
         @Body body: Map<String, String>
     ): BaseResponse<UserDto>
+
+    @POST("auth/user/resend-otp")
+    suspend fun resendOtp(@Body body: Map<String, String>): BaseResponse<OtpDto>
 }
 
 interface VerificationApiService {

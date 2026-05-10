@@ -33,6 +33,8 @@ import kotlinx.coroutines.delay
 fun OtpVerificationScreen(
     userId: String,
     role: String,
+    name: String,
+    email: String,
     onVerified: () -> Unit,
     onNavigateBack: () -> Unit,
     authViewModel: AuthViewModel = viewModel()
@@ -54,6 +56,10 @@ fun OtpVerificationScreen(
                 showSuccess = true
                 delay(1200) // brief success flash
                 onVerified()
+                authViewModel.resetState()
+            }
+            is AuthState.ResendOtpSuccess -> {
+                errorMsg = s.message
                 authViewModel.resetState()
             }
             is AuthState.Error -> {
@@ -277,17 +283,15 @@ fun OtpVerificationScreen(
                         TextButton(
                             onClick = { 
                                 if (canResend) {
+                                    authViewModel.resendOtp(userId, email, name)
                                     // Reset timer
                                     timeLeft = 120
                                     canResend = false
-                                    // Optionally trigger a real resend if API exists, 
-                                    // for now we'll just show a hint as before or clear error
-                                    errorMsg = "OTP has been resent to your email."
                                 } else {
                                     errorMsg = "Please wait for the timer to finish before resending."
                                 }
                             },
-                            enabled = canResend
+                            enabled = canResend && !isLoading
                         ) {
                             Icon(
                                 Icons.Default.Refresh, 

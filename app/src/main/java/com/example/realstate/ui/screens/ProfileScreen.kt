@@ -134,13 +134,22 @@ fun ProfileScreen(
             onDismissRequest = { showOtpDialog = false },
             title = { Text("Verify New Email", fontWeight = FontWeight.ExtraBold) },
             text = {
-                OutlinedTextField(
-                    value = otpInput,
-                    onValueChange = { otpInput = it },
-                    label = { Text("6-digit OTP") },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
-                )
+                Column {
+                    OutlinedTextField(
+                        value = otpInput,
+                        onValueChange = { otpInput = it },
+                        label = { Text("6-digit OTP") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    TextButton(
+                        onClick = { viewModel.resendOtp(newEmailInput) },
+                        modifier = Modifier.align(Alignment.End),
+                        enabled = !uiState.isLoading
+                    ) {
+                        Text("Resend OTP", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                    }
+                }
             },
             confirmButton = {
                 Button(onClick = { 

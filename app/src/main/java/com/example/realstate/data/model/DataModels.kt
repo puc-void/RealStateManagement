@@ -132,3 +132,12 @@ data class NotificationDto(
     val receiverRole: String? = null,
     val generatedAt: String? = null
 )
+
+data class OtpDto(
+    val id: String,
+    val userId: String,
+    val otp: String,
+    val expiresAt: String,
+    val generatedAt: String,
+    val updatedAt: String
+)

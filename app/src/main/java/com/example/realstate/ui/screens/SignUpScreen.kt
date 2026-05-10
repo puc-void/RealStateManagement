@@ -37,7 +37,7 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(
-    onSignUpSuccess: (userId: String, role: String) -> Unit,
+    onSignUpSuccess: (userId: String, role: String, name: String, email: String) -> Unit,
     onNavigateToLogin: () -> Unit,
     authViewModel: AuthViewModel = viewModel()
 ) {
@@ -62,7 +62,7 @@ fun SignUpScreen(
     LaunchedEffect(authState) {
         when (val s = authState) {
             is AuthState.SignUpSuccess -> {
-                onSignUpSuccess(s.userId, s.role)
+                onSignUpSuccess(s.userId, s.role, name, email)
                 authViewModel.resetState()
             }
             is AuthState.Error -> {

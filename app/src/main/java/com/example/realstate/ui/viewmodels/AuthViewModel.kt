@@ -19,6 +19,7 @@ sealed class AuthState {
     object Loading : AuthState()
     data class SignUpSuccess(val userId: String, val role: String) : AuthState()
     data class VerifySuccess(val role: String) : AuthState()
+    data class ResendOtpSuccess(val message: String) : AuthState()
     data class SignInSuccess(val role: UserRole) : AuthState()
     data class Error(val message: String) : AuthState()
 }
@@ -54,7 +55,8 @@ class AuthViewModel : ViewModel() {
                         location    = user.address ?: "",
                         joinDate    = user.generatedAt?.take(10) ?: "",
                         status      = user.status ?: "active",
-                        wishlistId  = wId
+                        wishlistId  = wId,
+                        isEmailVerified = user.emailVerified ?: false
                     )
 
                     // Load wishlist items into repository
@@ -131,7 +133,8 @@ class AuthViewModel : ViewModel() {
                         profilePicUrl = "https://i.pravatar.cc/150",
                         phone = contactNumber,
                         location = address,
-                        wishlistId = wId
+                        wishlistId = wId,
+                        isEmailVerified = false
                     )
                     
                     _state.update { AuthState.SignUpSuccess(userId, role) }
@@ -188,6 +191,28 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    fun resendOtp(userId: String, email: String, name: String) {
+        _state.update { AuthState.Loading }
+        viewModelScope.launch {
+            try {
+                val body = mapOf(
+                    "userId" to userId,
+                    "email" to email,
+                    "name" to name
+                )
+                val response = RetrofitClient.authApi.resendOtp(body)
+                if (response.success) {
+                    _state.update { AuthState.ResendOtpSuccess(response.message) }
+                } else {
+                    _state.update { AuthState.Error(response.message) }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _state.update { AuthState.Error("Failed to resend OTP: ${e.message}") }
+            }
+        }
+    }
+
     fun signin(email: String, password: String) {
         if (email.isBlank()) { _state.update { AuthState.Error("Please enter your email") }; return }
         if (password.isBlank()) { _state.update { AuthState.Error("Please enter your password") }; return }
@@ -223,7 +248,8 @@ class AuthViewModel : ViewModel() {
                         location    = user.address ?: "",
                         joinDate    = user.generatedAt?.take(10) ?: "",
                         status      = user.status ?: "active",
-                        wishlistId  = wId
+                        wishlistId  = wId,
+                        isEmailVerified = user.emailVerified ?: false
                     )
 
                     if (roleEnum == UserRole.AGENT) {

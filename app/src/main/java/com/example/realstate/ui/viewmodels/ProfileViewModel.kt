@@ -206,6 +206,28 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
+    fun resendOtp(email: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            try {
+                val body = mapOf(
+                    "userId" to userId,
+                    "email" to email,
+                    "name" to MockData.currentUser.name
+                )
+                val response = RetrofitClient.authApi.resendOtp(body)
+                if (response.success) {
+                    com.example.realstate.utils.NotificationManager.showNotification(response.message ?: "OTP Resent Successfully")
+                    _uiState.update { it.copy(isLoading = false) }
+                } else {
+                    _uiState.update { it.copy(isLoading = false, error = response.message) }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
+            }
+        }
+    }
+
     fun verifyNewEmail(otp: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }

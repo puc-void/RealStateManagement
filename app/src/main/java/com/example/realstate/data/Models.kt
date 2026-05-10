@@ -42,5 +42,6 @@ data class User(
     val joinDate: String = "January 2024",
     val status: String = "ACTIVE",
     val id: String = "user-123",
-    val wishlistId: String = ""
+    val wishlistId: String = "",
+    val isEmailVerified: Boolean = false
 )
